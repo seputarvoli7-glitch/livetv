@@ -8,24 +8,26 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-body{
+html,body{
     margin:0;
+    width:100%;
+    height:100%;
     background:#000;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
 }
 
 .player{
     position:relative;
     width:100%;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#000;
 }
 
 video{
     width:100%;
-    height:auto;
-    display:block;
+    max-height:100%;
     background:#000;
 }
 
@@ -33,16 +35,14 @@ video{
     position:absolute;
     top:8%;
     right:5%;
-    color:rgba(255,255,255,0.6);
+    color:rgba(255,255,255,.65);
     font-size:12px;
     font-weight:bold;
     font-family:Arial,sans-serif;
-    text-shadow:1px 1px 2px #000;
+    text-shadow:1px 1px 3px #000;
     pointer-events:none;
-    z-index:9999;
 }
 </style>
-
 </head>
 
 <body>
@@ -53,19 +53,29 @@ video{
 </div>
 
 <script>
+const MASTER_URL = "https://seputarvoli7-glitch.github.io/livetv/master.m3u8";
+
 const video = document.getElementById("video");
-const streamUrl = "https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/PEbI6ecX/live.isml/master.m3u8";
 
 if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(streamUrl);
+    const hls = new Hls({
+        enableWorker:true,
+        lowLatencyMode:true
+    });
+
+    hls.loadSource(MASTER_URL);
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MANIFEST_PARSED, function () {
-        video.play();
+        video.play().catch(()=>{});
     });
+
+    hls.on(Hls.Events.ERROR, function(event, data){
+        console.log("HLS Error:", data);
+    });
+
 } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = streamUrl;
+    video.src = MASTER_URL;
 }
 </script>
 
