@@ -18,30 +18,31 @@ body{
     height:100vh;
     overflow:hidden;
 }
-
 .player{
     position:relative;
     width:100%;
-    max-width:100%;
 }
-
 video{
     width:100%;
-    height:auto;
     display:block;
     background:#000;
 }
-
 .watermark{
     position:absolute;
     top:8%;
     right:5%;
-    color:rgba(255,255,255,0.6);
+    color:rgba(255,255,255,.6);
     font-size:12px;
     font-weight:bold;
-    font-family:Arial,sans-serif;
     text-shadow:1px 1px 2px #000;
     pointer-events:none;
+}
+#log{
+    color:#0f0;
+    font-size:12px;
+    white-space:pre-wrap;
+    padding:10px;
+    font-family:monospace;
 }
 </style>
 </head>
@@ -53,13 +54,22 @@ video{
     <div class="watermark">MegawatiRedspark</div>
 </div>
 
+<pre id="log">Memuat stream...</pre>
+
 <script>
-const MASTER_URL = "https://seputarvoli7-glitch.github.io/livetv/master.m3u8";
+const MASTER_URL="https://seputarvoli7-glitch.github.io/livetv/master.m3u8";
 
-const video = document.getElementById("video");
+const video=document.getElementById("video");
+const log=document.getElementById("log");
 
-if (Hls.isSupported()) {
-    const hls = new Hls({
+function tulis(teks){
+    console.log(teks);
+    log.textContent+= "\n"+teks;
+}
+
+if(Hls.isSupported()){
+
+    const hls=new Hls({
         enableWorker:true,
         lowLatencyMode:true
     });
@@ -67,16 +77,35 @@ if (Hls.isSupported()) {
     hls.loadSource(MASTER_URL);
     hls.attachMedia(video);
 
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+    hls.on(Hls.Events.MANIFEST_LOADING,()=>{
+        tulis("Memuat master playlist...");
+    });
+
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
+        tulis("Master berhasil dimuat.");
         video.play().catch(()=>{});
     });
 
-    hls.on(Hls.Events.ERROR, function(event, data){
-        console.log("HLS Error:", data);
+    hls.on(Hls.Events.LEVEL_LOADED,()=>{
+        tulis("Video playlist berhasil dimuat.");
     });
 
-} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = MASTER_URL;
+    hls.on(Hls.Events.AUDIO_TRACK_LOADED,()=>{
+        tulis("Audio playlist berhasil dimuat.");
+    });
+
+    hls.on(Hls.Events.ERROR,(event,data)=>{
+        tulis("ERROR:");
+        tulis(JSON.stringify(data,null,2));
+    });
+
+}else if(video.canPlayType("application/vnd.apple.mpegurl")){
+
+    video.src=MASTER_URL;
+
+}else{
+
+    tulis("Browser tidak mendukung HLS.");
 }
 </script>
 
