@@ -1,8 +1,10 @@
-<!DOCTYPE html>
+
+    <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Live TV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -11,103 +13,120 @@
 body{
     margin:0;
     background:#000;
-    display:flex;
-    justify-content:center;
-    align-items:center;
     width:100vw;
     height:100vh;
     overflow:hidden;
 }
+
 .player{
     position:relative;
     width:100%;
+    height:100vh;
 }
+
 video{
     width:100%;
-    display:block;
+    height:100%;
+    object-fit:contain;
     background:#000;
 }
+
 .watermark{
     position:absolute;
     top:8%;
     right:5%;
     color:rgba(255,255,255,.6);
-    font-size:12px;
+    font-size:14px;
     font-weight:bold;
     text-shadow:1px 1px 2px #000;
     pointer-events:none;
 }
+
 #log{
-    color:#0f0;
-    font-size:12px;
-    white-space:pre-wrap;
-    padding:10px;
-    font-family:monospace;
+    display:none;
 }
 </style>
+
 </head>
 
 <body>
 
 <div class="player">
-    <video id="video" controls autoplay playsinline></video>
-    <div class="watermark">MegawatiRedspark</div>
+
+<video id="video" controls autoplay muted playsinline></video>
+
+<div class="watermark">
+MegawatiRedspark
 </div>
+
+</div>
+
 
 <pre id="log">Memuat stream...</pre>
 
+
 <script>
+
 const url = "https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/8TBQDKh6/live.isml/master.m3u8";
 
-const video=document.getElementById("video");
-const log=document.getElementById("log");
+const video = document.getElementById("video");
+const log = document.getElementById("log");
+
 
 function tulis(teks){
     console.log(teks);
-    log.textContent+= "\n"+teks;
+    log.textContent += "\n" + teks;
 }
+
 
 if(Hls.isSupported()){
 
-    const hls=new Hls({
+    const hls = new Hls({
         enableWorker:true,
-        lowLatencyMode:true
+        lowLatencyMode:true,
+        maxBufferLength:30
     });
+
 
     hls.loadSource(url);
+
     hls.attachMedia(video);
 
-    hls.on(Hls.Events.MANIFEST_LOADING,()=>{
-        tulis("Memuat master playlist...");
-    });
 
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
-        tulis("Master berhasil dimuat.");
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+
+        tulis("Stream berhasil dimuat");
+
         video.play().catch(()=>{});
+
     });
 
-    hls.on(Hls.Events.LEVEL_LOADED,()=>{
-        tulis("Video playlist berhasil dimuat.");
+
+    hls.on(Hls.Events.ERROR, function(event,data){
+
+        console.log(data);
+
+        tulis("Terjadi error: " + data.type);
+
     });
 
-    hls.on(Hls.Events.AUDIO_TRACK_LOADED,()=>{
-        tulis("Audio playlist berhasil dimuat.");
-    });
-
-    hls.on(Hls.Events.ERROR,(event,data)=>{
-        tulis("ERROR:");
-        tulis(JSON.stringify(data,null,2));
-    });
 
 }else if(video.canPlayType("application/vnd.apple.mpegurl")){
 
+
     video.src = url;
+
 
 }else{
 
-    tulis("Browser tidak mendukung HLS.");
+
+    alert("Browser tidak mendukung HLS");
+
 }
+
+
 </script>
+
 
 </body>
 </html>
