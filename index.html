@@ -53,7 +53,7 @@ video{
 
 <div class="player">
 
-<video id="video" controls autoplay muted playsinline></video>
+<video id="video" controls autoplay playsinline></video>
 
 <div class="watermark">
 MegawatiRedspark
@@ -82,10 +82,11 @@ function tulis(teks){
 if(Hls.isSupported()){
 
     const hls = new Hls({
-        enableWorker:true,
-        lowLatencyMode:true,
-        maxBufferLength:30
-    });
+    enableWorker:true,
+    lowLatencyMode:true,
+    maxBufferLength:30,
+    startLevel:-1
+});
 
 
     hls.loadSource(url);
@@ -93,8 +94,17 @@ if(Hls.isSupported()){
     hls.attachMedia(video);
 
 
-    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+    hls.on(Hls.Events.MANIFEST_PARSED, function(event, data){
 
+    console.log("Jumlah audio:", hls.audioTracks.length);
+
+    if(hls.audioTracks.length > 0){
+        hls.audioTrack = 0;
+    }
+
+    video.play().catch(()=>{});
+
+});
         tulis("Stream berhasil dimuat");
 
         video.play().catch(()=>{});
