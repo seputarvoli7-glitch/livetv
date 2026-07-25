@@ -1,5 +1,4 @@
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -61,7 +60,6 @@ MegawatiRedspark
 
 </div>
 
-
 <pre id="log">Memuat stream...</pre>
 
 
@@ -82,11 +80,10 @@ function tulis(teks){
 if(Hls.isSupported()){
 
     const hls = new Hls({
-    enableWorker:true,
-    lowLatencyMode:true,
-    maxBufferLength:30,
-    startLevel:-1
-});
+        enableWorker:true,
+        lowLatencyMode:true,
+        maxBufferLength:30
+    });
 
 
     hls.loadSource(url);
@@ -96,18 +93,12 @@ if(Hls.isSupported()){
 
     hls.on(Hls.Events.MANIFEST_PARSED, function(event, data){
 
-    console.log("Jumlah audio:", hls.audioTracks.length);
+        console.log("Stream siap");
 
-    if(hls.audioTracks.length > 0){
-        hls.audioTrack = 0;
-    }
-
-    video.play().catch(()=>{});
-
-});
-        tulis("Stream berhasil dimuat");
-
-        video.play().catch(()=>{});
+        if(hls.audioTracks.length > 0){
+            hls.audioTrack = 0;
+            console.log("Audio aktif");
+        }
 
     });
 
@@ -116,27 +107,20 @@ if(Hls.isSupported()){
 
         console.log(data);
 
-        tulis("Terjadi error: " + data.type);
-
     });
 
 
 }else if(video.canPlayType("application/vnd.apple.mpegurl")){
 
-
     video.src = url;
 
-
 }else{
-
 
     alert("Browser tidak mendukung HLS");
 
 }
 
-
 </script>
-
 
 </body>
 </html>
