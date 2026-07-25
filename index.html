@@ -17,10 +17,23 @@ video{
     height:100vh;
     background:#000;
 }
+    .watermark{
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    text-shadow: 2px 2px 5px #000;
+    opacity: 0.8;
+    z-index: 9999;
+    pointer-events: none;
+    }
 </style>
 </head>
 <body>
-
+<div class="watermark">MegawatiRedspark</div>
 <video id="video" controls autoplay playsinline></video>
 
 <script>
