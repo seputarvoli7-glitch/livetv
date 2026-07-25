@@ -1,7 +1,1 @@
-#EXTM3U
-#EXT-X-VERSION:3
 
-#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="Audio",DEFAULT=YES,AUTOSELECT=YES,URI="https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/8TBQDKh6/live.isml/live-audio_0=96000.m3u8"
-
-#EXT-X-STREAM-INF:BANDWIDTH=696000,RESOLUTION=640x360,CODECS="avc1.42E01E,mp4a.40.2",AUDIO="audio"
-https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/8TBQDKh6/live.isml/live-video=600000.m3u8
