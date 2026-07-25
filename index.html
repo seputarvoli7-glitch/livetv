@@ -74,7 +74,7 @@ if(Hls.isSupported()){
         lowLatencyMode:true
     });
 
-    hls.loadSource(MASTER_URL);
+    hls.loadSource(url);
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MANIFEST_LOADING,()=>{
@@ -101,7 +101,7 @@ if(Hls.isSupported()){
 
 }else if(video.canPlayType("application/vnd.apple.mpegurl")){
 
-    video.src=MASTER_URL;
+    video.src = url;
 
 }else{
 
