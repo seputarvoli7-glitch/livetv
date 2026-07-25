@@ -40,10 +40,6 @@ video{
     text-shadow:1px 1px 2px #000;
     pointer-events:none;
 }
-
-#log{
-    display:none;
-}
 </style>
 
 </head>
@@ -60,52 +56,26 @@ MegawatiRedspark
 
 </div>
 
-<pre id="log">Memuat stream...</pre>
-
 
 <script>
 
 const url = "https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/8TBQDKh6/live.isml/master.m3u8";
 
 const video = document.getElementById("video");
-const log = document.getElementById("log");
-
-
-function tulis(teks){
-    console.log(teks);
-    log.textContent += "\n" + teks;
-}
 
 
 if(Hls.isSupported()){
 
-    const hls = new Hls({
-        enableWorker:true,
-        lowLatencyMode:true,
-        maxBufferLength:30
-    });
-
+    const hls = new Hls();
 
     hls.loadSource(url);
 
     hls.attachMedia(video);
 
 
-    hls.on(Hls.Events.MANIFEST_PARSED, function(event, data){
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
 
-        console.log("Stream siap");
-
-        if(hls.audioTracks.length > 0){
-            hls.audioTrack = 0;
-            console.log("Audio aktif");
-        }
-
-    });
-
-
-    hls.on(Hls.Events.ERROR, function(event,data){
-
-        console.log(data);
+        video.play().catch(()=>{});
 
     });
 
@@ -113,10 +83,6 @@ if(Hls.isSupported()){
 }else if(video.canPlayType("application/vnd.apple.mpegurl")){
 
     video.src = url;
-
-}else{
-
-    alert("Browser tidak mendukung HLS");
 
 }
 
