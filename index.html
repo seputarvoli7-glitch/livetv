@@ -3,57 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Live TV</title>
 
-<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-html,body{
+body{
     margin:0;
-    width:100%;
-    height:100%;
     background:#000;
+    width:100vw;
+    height:100vh;
     overflow:hidden;
 }
 
-#videoPlayer{
+.player{
+    position:relative;
+    width:100%;
+    height:100vh;
+}
+
+video{
     width:100%;
     height:100%;
     object-fit:contain;
+    background:#000;
 }
 
-#watermark{
+.watermark{
     position:absolute;
-    top:15px;
-    left:15px;
-    color:#fff;
-    font-size:22px;
+    top:38%;
+    right:5%;
+    transform:translateY(-50%);
+    color:rgba(255,255,255,.6);
+    font-size:14px;
     font-weight:bold;
-    font-family:Arial,sans-serif;
-    text-shadow:2px 2px 5px #000;
-    z-index:999;
+    text-shadow:1px 1px 2px #000;
     pointer-events:none;
 }
 </style>
+
 </head>
+
 <body>
 
-<div id="watermark">MegawatiRedspark</div>
+<div class="player">
 
-<video id="videoPlayer" controls autoplay playsinline></video>
+<video id="video" controls autoplay playsinline></video>
+
+<div class="watermark">
+MegawatiRedspark
+</div>
+
+</div>
+
 
 <script>
-const url = "http://gvisiontv.channell.my.id/ch/th/th1.php/.mpd?=29";
 
-const player = dashjs.MediaPlayer().create();
-player.initialize(document.querySelector("#videoPlayer"), url, true);
+const url = "https://livecdn.euw1-0008.jwplive.com/live/sites/fM9jRrkn/media/pNQ7MbHn/live.isml/master.m3u8";
 
-player.updateSettings({
-    streaming: {
-        lowLatencyEnabled: true,
-        fastSwitchEnabled: true
-    }
-});
+const video = document.getElementById("video");
+
+
+if (Hls.isSupported()) {
+
+    const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        maxBufferLength: 30
+    });
+
+    hls.loadSource(url);
+    hls.attachMedia(video);
+
+
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+
+        console.log("Stream siap");
+
+    });
+
+
+    hls.on(Hls.Events.ERROR, function(event, data){
+
+        console.log("Error:", data);
+
+    });
+
+
+} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+
+    video.src = url;
+
+}
+
 </script>
 
 </body>
