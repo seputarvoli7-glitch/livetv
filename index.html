@@ -106,9 +106,7 @@ if(Hls.isSupported()){
 
         setStatus("Manifest berhasil dimuat. Memulai video...");
 
-        video.play().catch(function(e){
-            setStatus("Play Error : "+e,"yellow");
-        });
+        setStatus("Tekan tombol ▶ untuk memulai video");
 
     });
 
