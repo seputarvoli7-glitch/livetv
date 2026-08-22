@@ -1,8 +1,8 @@
-# Channel 33 HLS Player
+# Phaohoa 6 Chrome Player
 
 Upload `index.html` ke repository GitHub Pages.
 
-Stream:
-https://live2.livefeedtextbox.com/live/channel33.m3u8
+Setelah GitHub Pages aktif, buka URL Pages repository tersebut melalui Chrome.
 
-Catatan: HLS.js tidak dapat memaksa browser mengirim header Referer tertentu. Jika server memerlukan Referer atau tidak mengizinkan CORS, player GitHub Pages dapat gagal walaupun URL M3U8 bisa diakses.
+Catatan:
+Player menggunakan hls.js. Jika server stream tidak mengizinkan CORS untuk domain GitHub Pages, Chrome tetap akan menolak stream. Dalam kasus tersebut, diperlukan server/proxy yang memang berwenang menyediakan stream dengan header CORS yang benar.
