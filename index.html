@@ -3,138 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live HLS Player</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-
+  <title>Phaohoa 6 Live</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: #000;
-      font-family: Arial, sans-serif;
-      color: white;
-    }
-
-    .player {
-      width: 100%;
-      max-width: 1000px;
-      margin: auto;
-      position: relative;
-      background: #000;
-    }
-
-    video {
-      width: 100%;
-      height: auto;
-      display: block;
-      background: #000;
-    }
-
-    #status {
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-      background: #111;
-    }
+    body { margin:0; background:#111; color:#fff; font-family:Arial,sans-serif; }
+    .wrap { max-width:1000px; margin:auto; padding:16px; }
+    h1 { font-size:20px; margin:0 0 12px; }
+    video { width:100%; height:auto; background:#000; display:block; }
+    #status { padding:10px 0; font-size:14px; color:#ccc; }
   </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>Phaohoa 6 Live</h1>
+    <video id="video" controls autoplay playsinline></video>
+    <div id="status">Memuat stream...</div>
+  </div>
 
-<div class="player">
-  <video id="video" controls autoplay playsinline></video>
-  <div id="status">Menghubungkan ke live...</div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+    const stream = 'https://luong.phaohoa.live/live/phaohoa6/index.m3u8';
 
-<script>
-const video = document.getElementById("video");
-const status = document.getElementById("status");
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = stream;
+      video.addEventListener('loadedmetadata', () => {
+        status.textContent = 'Stream siap diputar.';
+        video.play().catch(() => {});
+      });
+    } else if (Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true
+      });
 
-const streamURL =
-  "https://luong.phaohoa.live/live/phaohoa8/index.m3u8";
+      hls.loadSource(stream);
+      hls.attachMedia(video);
 
-function setStatus(text) {
-  status.textContent = text;
-}
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        status.textContent = 'Stream siap diputar.';
+        video.play().catch(() => {});
+      });
 
-if (Hls.isSupported()) {
-
-  const hls = new Hls({
-    enableWorker: true,
-    lowLatencyMode: true,
-
-    liveSyncDurationCount: 3,
-    liveMaxLatencyDurationCount: 6,
-
-    maxBufferLength: 10,
-    backBufferLength: 5,
-
-    manifestLoadingMaxRetry: 5,
-    levelLoadingMaxRetry: 5,
-    fragLoadingMaxRetry: 5
-  });
-
-  hls.loadSource(streamURL);
-  hls.attachMedia(video);
-
-  hls.on(Hls.Events.MANIFEST_PARSED, function () {
-    setStatus("LIVE siap diputar");
-
-    video.play().catch(() => {
-      setStatus("Tekan tombol Play untuk memulai LIVE");
-    });
-  });
-
-  hls.on(Hls.Events.ERROR, function (event, data) {
-
-    console.log("HLS ERROR:", data);
-
-    if (data.fatal) {
-
-      switch (data.type) {
-
-        case Hls.ErrorTypes.NETWORK_ERROR:
-          setStatus("Gangguan jaringan. Mencoba menghubungkan ulang...");
-          hls.startLoad();
-          break;
-
-        case Hls.ErrorTypes.MEDIA_ERROR:
-          setStatus("Gangguan media. Memulihkan...");
-          hls.recoverMediaError();
-          break;
-
-        default:
-          setStatus("Stream gagal dimuat.");
-          hls.destroy();
-          break;
-      }
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.log('HLS error:', data);
+        status.textContent = 'Gagal memuat stream. Cek CORS, Referer, atau apakah server stream masih aktif.';
+      });
+    } else {
+      status.textContent = 'Browser ini tidak mendukung pemutaran HLS.';
     }
-  });
-
-} else if (
-  video.canPlayType("application/vnd.apple.mpegurl")
-) {
-
-  // Safari / browser dengan HLS native
-  video.src = streamURL;
-
-  video.addEventListener("loadedmetadata", function () {
-    setStatus("LIVE siap diputar");
-
-    video.play().catch(() => {
-      setStatus("Tekan tombol Play untuk memulai LIVE");
-    });
-  });
-
-} else {
-
-  setStatus("Browser ini tidak mendukung HLS.");
-}
-</script>
-
+  </script>
 </body>
 </html>
