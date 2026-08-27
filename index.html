@@ -3,55 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phaohoa 6 Live</title>
+  <title>Live Player</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.0/shaka-player.compiled.js"></script>
+
   <style>
-    body { margin:0; background:#111; color:#fff; font-family:Arial,sans-serif; }
-    .wrap { max-width:1000px; margin:auto; padding:16px; }
-    h1 { font-size:20px; margin:0 0 12px; }
-    video { width:100%; height:auto; background:#000; display:block; }
-    #status { padding:10px 0; font-size:14px; color:#ccc; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      object-fit: contain;
+    }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>Phaohoa 6 Live</h1>
-    <video id="video" controls autoplay playsinline></video>
-    <div id="status">Memuat stream...</div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    const video = document.getElementById('video');
-    const status = document.getElementById('status');
-    const stream = 'https://d10btucg50kagt.cloudfront.net/6666c6d0c7e10e0ee0be55f5/684ad0046b24126facf6347e/mYMoy2FRygYI/2026/8/26/13_0_36/index.m3u8';
+<video id="video" controls autoplay playsinline></video>
 
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = stream;
-      video.addEventListener('loadedmetadata', () => {
-        status.textContent = 'Stream siap diputar.';
-        video.play().catch(() => {});
-      });
-    } else if (Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true
-      });
+<script>
+  async function init() {
+    const video = document.getElementById("video");
 
-      hls.loadSource(stream);
-      hls.attachMedia(video);
+    shaka.polyfill.installAll();
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        status.textContent = 'Stream siap diputar.';
-        video.play().catch(() => {});
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        console.log('HLS error:', data);
-        status.textContent = 'Gagal memuat stream. Cek CORS, Referer, atau apakah server stream masih aktif.';
-      });
-    } else {
-      status.textContent = 'Browser ini tidak mendukung pemutaran HLS.';
+    if (!shaka.Player.isBrowserSupported()) {
+      alert("Browser tidak mendukung pemutar DASH.");
+      return;
     }
-  </script>
+
+    const player = new shaka.Player();
+    await player.attach(video);
+
+    const mpdUrl =
+      "https://gvisiontv.channell.my.id/ch/th/th1.php/.mpd?=29";
+
+    player.addEventListener("error", event => {
+      console.error("Shaka Error:", event.detail);
+    });
+
+    try {
+      await player.load(mpdUrl);
+      console.log("MPD berhasil dimuat.");
+
+      video.muted = true;
+      await video.play().catch(() => {});
+    } catch (error) {
+      console.error("Gagal memutar MPD:", error);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+
 </body>
 </html>
