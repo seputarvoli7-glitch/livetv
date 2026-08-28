@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIVE STREAMING</title>
+  <title>Live Player</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.0/shaka-player.compiled.js"></script>
 
   <style>
     html, body {
@@ -20,8 +20,8 @@
     video {
       width: 100%;
       height: 100%;
-      object-fit: contain;
       background: #000;
+      object-fit: contain;
     }
   </style>
 </head>
@@ -31,46 +31,38 @@
 <video id="video" controls autoplay playsinline></video>
 
 <script>
-const video = document.getElementById("video");
+  async function init() {
+    const video = document.getElementById("video");
 
-const streamURL =
-"https://rumble.com/live-hls-dvr/T9ov0M5eRh4/playlist.m3u8";
+    shaka.polyfill.installAll();
 
-if (Hls.isSupported()) {
-
-  const hls = new Hls({
-    enableWorker: true,
-    liveSyncDurationCount: 3
-  });
-
-  hls.loadSource(streamURL);
-  hls.attachMedia(video);
-
-  hls.on(Hls.Events.MANIFEST_PARSED, function () {
-    video.muted = true;
-    video.play().catch(() => {});
-  });
-
-  hls.on(Hls.Events.ERROR, function (event, data) {
-    console.log("HLS Error:", data);
-
-    if (data.fatal) {
-      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-        hls.startLoad();
-      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-        hls.recoverMediaError();
-      }
+    if (!shaka.Player.isBrowserSupported()) {
+      alert("Browser tidak mendukung pemutar DASH.");
+      return;
     }
-  });
 
-} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    const player = new shaka.Player();
+    await player.attach(video);
 
-  video.src = streamURL;
+    const mpdUrl =
+      "https://gvisiontv.channell.my.id/ch/th/th1.php/.mpd?=29";
 
-  video.addEventListener("loadedmetadata", function () {
-    video.play().catch(() => {});
-  });
-}
+    player.addEventListener("error", event => {
+      console.error("Shaka Error:", event.detail);
+    });
+
+    try {
+      await player.load(mpdUrl);
+      console.log("MPD berhasil dimuat.");
+
+      video.muted = true;
+      await video.play().catch(() => {});
+    } catch (error) {
+      console.error("Gagal memutar MPD:", error);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 </script>
 
 </body>
