@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Player</title>
+  <title>LIVE STREAMING</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.0/shaka-player.compiled.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 
   <style>
     html, body {
@@ -31,38 +31,62 @@
 <video id="video" controls autoplay playsinline></video>
 
 <script>
-  async function init() {
-    const video = document.getElementById("video");
+const video = document.getElementById("video");
 
-    shaka.polyfill.installAll();
+const streamURL =
+"https://rumble.com/live-hls-dvr/m9fT2JGFr1c/playlist.m3u8";
 
-    if (!shaka.Player.isBrowserSupported()) {
-      alert("Browser tidak mendukung pemutar DASH.");
-      return;
+if (Hls.isSupported()) {
+
+  const hls = new Hls({
+    enableWorker: true,
+    liveSyncDurationCount: 3
+  });
+
+  hls.loadSource(streamURL);
+  hls.attachMedia(video);
+
+  hls.on(Hls.Events.MANIFEST_PARSED, function () {
+    video.muted = true;
+    video.play().catch(() => {});
+  });
+
+  hls.on(Hls.Events.ERROR, function (event, data) {
+    console.log("HLS Error:", data);
+
+    if (data.fatal) {
+
+      switch (data.type) {
+
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          console.log("Network error, mencoba kembali...");
+          hls.startLoad();
+          break;
+
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          console.log("Media error, recovery...");
+          hls.recoverMediaError();
+          break;
+
+        default:
+          console.log("Fatal error:", data);
+          hls.destroy();
+          break;
+      }
     }
+  });
 
-    const player = new shaka.Player();
-    await player.attach(video);
+} else if (
+  video.canPlayType("application/vnd.apple.mpegurl")
+) {
 
-    const mpdUrl =
-      "https://gvisiontv.channell.my.id/ch/th/th1.php/.mpd?=29";
+  video.src = streamURL;
 
-    player.addEventListener("error", event => {
-      console.error("Shaka Error:", event.detail);
-    });
+  video.addEventListener("loadedmetadata", function () {
+    video.play().catch(() => {});
+  });
 
-    try {
-      await player.load(mpdUrl);
-      console.log("MPD berhasil dimuat.");
-
-      video.muted = true;
-      await video.play().catch(() => {});
-    } catch (error) {
-      console.error("Gagal memutar MPD:", error);
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
+}
 </script>
 
 </body>
