@@ -1,45 +1,105 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Player</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
+<title>Phaohoa 6 Live</title>
 
-    <style>
-        body {
-            margin: 0;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+<script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
 
-        video {
-            width: 100%;
-            max-width: 1000px;
-            height: auto;
-            background: #000;
-        }
-    </style>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #000;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+
+    .player {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    video {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #000;
+        display: block;
+    }
+
+    #status {
+        padding: 12px;
+        font-size: 14px;
+        background: #111;
+        word-break: break-word;
+    }
+</style>
 </head>
 
 <body>
 
-<video id="videoPlayer" controls autoplay playsinline></video>
+<div class="player">
+
+    <video
+        id="videoPlayer"
+        controls
+        playsinline
+        autoplay>
+    </video>
+
+    <div id="status">
+        Memuat stream...
+    </div>
+
+</div>
 
 <script>
-    const url = "https://tglmp02.akamaized.net/out/v1/2f39077458694b06bdfb15ef16f55d45/manifest.mpd";
 
-    const player = dashjs.MediaPlayer().create();
+const MPD_URL =
+"https://tglmp02.akamaized.net/out/v1/2f39077458694b06bdfb15ef16f55d45/manifest.mpd";
 
-    player.initialize(
-        document.querySelector("#videoPlayer"),
-        url,
-        true
-    );
+const video = document.getElementById("videoPlayer");
+const status = document.getElementById("status");
+
+const player = dashjs.MediaPlayer().create();
+
+player.on(
+    dashjs.MediaPlayer.events.STREAM_INITIALIZED,
+    function () {
+        status.innerHTML = "✅ Stream berhasil dimuat";
+
+        video.play().catch(function () {
+            status.innerHTML +=
+                "<br>Tekan tombol ▶ untuk mulai.";
+        });
+    }
+);
+
+player.on(
+    dashjs.MediaPlayer.events.ERROR,
+    function (e) {
+
+        console.log("DASH ERROR:", e);
+
+        status.innerHTML =
+            "❌ Gagal memutar stream.<br><br>" +
+            "<b>Detail:</b><br>" +
+            JSON.stringify(e, null, 2);
+    }
+);
+
+player.initialize(
+    video,
+    MPD_URL,
+    true
+);
+
 </script>
 
 </body>
