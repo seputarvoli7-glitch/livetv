@@ -4,57 +4,62 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>DASH Player</title>
+<title>DASH Debug Player</title>
 
-<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+<script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
 
-    body {
-        margin: 0;
-        background: #000;
-        color: #fff;
-        font-family: Arial, sans-serif;
-    }
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
 
-    .player {
-        width: 100%;
-        max-width: 1000px;
-        margin: auto;
-        background: #000;
-    }
+video {
+    width: 100%;
+    background: #000;
+}
 
-    video {
-        width: 100%;
-        display: block;
-        background: #000;
-    }
+#status {
+    padding: 12px;
+    background: #111;
+    font-size: 14px;
+    word-break: break-word;
+}
 
-    .info {
-        padding: 10px;
-        background: #111;
-        font-size: 14px;
-    }
+#error {
+    padding: 12px;
+    background: #300;
+    color: #fff;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="player">
+<div class="container">
 
-    <video
-        id="video"
-        controls
-        playsinline
-        crossorigin="anonymous">
-    </video>
+<video
+    id="video"
+    controls
+    playsinline
+    crossorigin="anonymous">
+</video>
 
-    <div id="status" class="info">
-        Memuat stream...
-    </div>
+<div id="status">
+Memuat DASH...
+</div>
+
+<div id="error"></div>
 
 </div>
 
@@ -63,69 +68,119 @@
 const MPD_URL =
 "https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest.mpd";
 
-const video =
-document.getElementById("video");
+const video = document.getElementById("video");
+const status = document.getElementById("status");
+const errorBox = document.getElementById("error");
 
-const status =
-document.getElementById("status");
+const player = dashjs.MediaPlayer().create();
 
+function showError(title, data) {
 
-const player =
-dashjs.MediaPlayer().create();
+    console.error(title, data);
 
+    let output = title + "\n\n";
+
+    try {
+        output += JSON.stringify(data, null, 2);
+    } catch (e) {
+        output += String(data);
+    }
+
+    errorBox.textContent = output;
+}
+
+player.on(
+    dashjs.MediaPlayer.events.MANIFEST_LOADED,
+    function(e) {
+
+        status.textContent =
+            "MPD berhasil dimuat.";
+
+        console.log("MANIFEST_LOADED", e);
+    }
+);
+
+player.on(
+    dashjs.MediaPlayer.events.STREAM_INITIALIZED,
+    function(e) {
+
+        status.textContent =
+            "Stream berhasil diinisialisasi. Silakan PLAY.";
+
+        console.log("STREAM_INITIALIZED", e);
+    }
+);
+
+player.on(
+    dashjs.MediaPlayer.events.FRAGMENT_LOADING_STARTED,
+    function(e) {
+
+        status.textContent =
+            "Sedang mengambil segment...";
+
+        console.log("FRAGMENT_LOADING_STARTED", e);
+    }
+);
+
+player.on(
+    dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED,
+    function(e) {
+
+        status.textContent =
+            "Segment berhasil dimuat.";
+
+        console.log("FRAGMENT_LOADING_COMPLETED", e);
+    }
+);
+
+player.on(
+    dashjs.MediaPlayer.events.ERROR,
+    function(e) {
+
+        showError(
+            "DASH ERROR",
+            e
+        );
+
+        status.textContent =
+            "Terjadi error DASH.";
+    }
+);
+
+video.addEventListener("error", function() {
+
+    if (video.error) {
+
+        showError(
+            "VIDEO ELEMENT ERROR",
+            {
+                code: video.error.code,
+                message: video.error.message
+            }
+        );
+
+    }
+
+});
+
+video.addEventListener("loadedmetadata", function() {
+
+    status.textContent =
+        "Metadata video berhasil dimuat.";
+
+});
+
+video.addEventListener("canplay", function() {
+
+    status.textContent =
+        "Video siap diputar.";
+
+});
 
 player.initialize(
     video,
     MPD_URL,
     false
-);
-
-
-/* DASH berhasil dimuat */
-
-player.on(
-    dashjs.MediaPlayer.events.STREAM_INITIALIZED,
-    function () {
-
-        status.textContent =
-            "Stream siap. Tekan PLAY.";
-
-        console.log(
-            "DASH STREAM INITIALIZED"
-        );
-
-    }
-);
-
-
-/* Error */
-
-player.on(
-    dashjs.MediaPlayer.events.ERROR,
-    function (e) {
-
-        console.error(
-            "DASH ERROR:",
-            e
-        );
-
-        status.textContent =
-            "DASH error. Lihat Console.";
-
-    }
-);
-
-
-/* Buffering */
-
-player.on(
-    dashjs.MediaPlayer.events.BUFFER_LOADED,
-    function () {
-
-        status.textContent =
-            "Stream siap.";
-
-    }
 );
 
 </script>
