@@ -1,92 +1,385 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIVE STREAMING </title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<title>Video Player</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .player {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        background: #000;
     }
 
     video {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      object-fit: contain;
+        display: block;
+        width: 100%;
+        height: auto;
+        background: #000;
     }
-  </style>
+
+    .controls {
+        padding: 10px;
+        background: #111;
+    }
+
+    .progress {
+        width: 100%;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+
+    .buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    button {
+        border: 0;
+        background: #222;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #333;
+    }
+
+    input[type="range"] {
+        cursor: pointer;
+    }
+
+    .volume {
+        width: 100px;
+    }
+
+    .time {
+        font-size: 13px;
+        margin-left: auto;
+    }
+
+    .status {
+        padding: 8px 10px;
+        background: #111;
+        color: #aaa;
+        font-size: 12px;
+    }
+</style>
 </head>
 
 <body>
 
-<video id="video" controls autoplay playsinline></video>
+<div class="player">
+
+    <video id="video" playsinline preload="auto"></video>
+
+    <div class="controls">
+
+        <input
+            id="progress"
+            class="progress"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+        >
+
+        <div class="buttons">
+
+            <button id="playBtn">▶ Play</button>
+
+            <button id="muteBtn">🔊</button>
+
+            <input
+                id="volume"
+                class="volume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="1"
+            >
+
+            <button id="fullscreenBtn">⛶</button>
+
+            <span id="time" class="time">
+                00:00 / 00:00
+            </span>
+
+        </div>
+
+    </div>
+
+    <div id="status" class="status">
+        Memuat video...
+    </div>
+
+</div>
+
 
 <script>
+
+const VIDEO_URL =
+"https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest_video_6_0_222917.mp4?m=1765124789";
+
+const AUDIO_URL =
+"https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest_audio_1_0_222917.mp4?m=1765124789";
+
+
 const video = document.getElementById("video");
+const playBtn = document.getElementById("playBtn");
+const muteBtn = document.getElementById("muteBtn");
+const volume = document.getElementById("volume");
+const progress = document.getElementById("progress");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+const timeDisplay = document.getElementById("time");
+const status = document.getElementById("status");
 
-const streamURL =
-"https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist_b4500000.m3u8";
 
-if (Hls.isSupported()) {
+/*
+    Audio dibuat terpisah karena sumber
+    video dan audio memang merupakan dua file berbeda.
+*/
+const audio = new Audio(AUDIO_URL);
 
-  const hls = new Hls({
-    enableWorker: true,
-    liveSyncDurationCount: 3
-  });
+audio.preload = "auto";
+audio.crossOrigin = "anonymous";
 
-  hls.loadSource(streamURL);
-  hls.attachMedia(video);
 
-  hls.on(Hls.Events.MANIFEST_PARSED, function () {
-    video.muted = true;
-    video.play().catch(() => {});
-  });
+video.crossOrigin = "anonymous";
+video.src = VIDEO_URL;
 
-  hls.on(Hls.Events.ERROR, function (event, data) {
-    console.log("HLS Error:", data);
 
-    if (data.fatal) {
+/* =========================
+   FORMAT WAKTU
+========================= */
 
-      switch (data.type) {
+function formatTime(seconds) {
 
-        case Hls.ErrorTypes.NETWORK_ERROR:
-          console.log("Network error, mencoba kembali...");
-          hls.startLoad();
-          break;
-
-        case Hls.ErrorTypes.MEDIA_ERROR:
-          console.log("Media error, recovery...");
-          hls.recoverMediaError();
-          break;
-
-        default:
-          console.log("Fatal error:", data);
-          hls.destroy();
-          break;
-      }
+    if (!isFinite(seconds)) {
+        return "00:00";
     }
-  });
 
-} else if (
-  video.canPlayType("application/vnd.apple.mpegurl")
-) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
 
-  video.src = streamURL;
-
-  video.addEventListener("loadedmetadata", function () {
-    video.play().catch(() => {});
-  });
-
+    return (
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(secs).padStart(2, "0")
+    );
 }
+
+
+/* =========================
+   UPDATE WAKTU
+========================= */
+
+video.addEventListener("loadedmetadata", () => {
+
+    progress.max = video.duration;
+
+    timeDisplay.textContent =
+        "00:00 / " +
+        formatTime(video.duration);
+
+    status.textContent = "Video siap diputar";
+
+});
+
+
+video.addEventListener("timeupdate", () => {
+
+    progress.value = video.currentTime;
+
+    timeDisplay.textContent =
+        formatTime(video.currentTime) +
+        " / " +
+        formatTime(video.duration);
+
+});
+
+
+/* =========================
+   PLAY
+========================= */
+
+playBtn.addEventListener("click", async () => {
+
+    try {
+
+        if (video.paused) {
+
+            /*
+                Samakan posisi audio dengan video
+            */
+            audio.currentTime = video.currentTime;
+
+            await video.play();
+            await audio.play();
+
+            playBtn.textContent = "⏸ Pause";
+
+            status.textContent = "Sedang diputar";
+
+        } else {
+
+            video.pause();
+            audio.pause();
+
+            playBtn.textContent = "▶ Play";
+
+            status.textContent = "Dijeda";
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Gagal memutar audio/video";
+
+    }
+
+});
+
+
+/* =========================
+   SINKRONISASI
+========================= */
+
+video.addEventListener("timeupdate", () => {
+
+    /*
+        Jika perbedaan posisi audio-video
+        lebih dari 0.25 detik, koreksi audio.
+    */
+
+    if (
+        !audio.paused &&
+        Math.abs(audio.currentTime - video.currentTime) > 0.25
+    ) {
+
+        audio.currentTime = video.currentTime;
+
+    }
+
+});
+
+
+/* =========================
+   SEEK / GESER PROGRESS
+========================= */
+
+progress.addEventListener("input", () => {
+
+    const newTime = Number(progress.value);
+
+    video.currentTime = newTime;
+    audio.currentTime = newTime;
+
+});
+
+
+/* =========================
+   VOLUME
+========================= */
+
+volume.addEventListener("input", () => {
+
+    audio.volume = volume.value;
+
+});
+
+
+/* =========================
+   MUTE
+========================= */
+
+muteBtn.addEventListener("click", () => {
+
+    audio.muted = !audio.muted;
+
+    muteBtn.textContent =
+        audio.muted ? "🔇" : "🔊";
+
+});
+
+
+/* =========================
+   FULLSCREEN
+========================= */
+
+fullscreenBtn.addEventListener("click", () => {
+
+    const player = document.querySelector(".player");
+
+    if (document.fullscreenElement) {
+
+        document.exitFullscreen();
+
+    } else {
+
+        player.requestFullscreen();
+
+    }
+
+});
+
+
+/* =========================
+   VIDEO SELESAI
+========================= */
+
+video.addEventListener("ended", () => {
+
+    audio.pause();
+
+    audio.currentTime = 0;
+
+    playBtn.textContent = "▶ Play";
+
+    status.textContent = "Video selesai";
+
+});
+
+
+/* =========================
+   ERROR
+========================= */
+
+video.addEventListener("error", () => {
+
+    status.textContent =
+        "Video gagal dimuat";
+
+});
+
+
+audio.addEventListener("error", () => {
+
+    status.textContent =
+        "Audio gagal dimuat";
+
+});
+
 </script>
 
 </body>
