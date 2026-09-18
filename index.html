@@ -3,84 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Video Player</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+body {
+    margin: 0;
+    background: #000;
+    color: white;
+    font-family: Arial, sans-serif;
+}
 
-    body {
-        margin: 0;
-        background: #000;
-        color: #fff;
-        font-family: Arial, sans-serif;
-    }
+.player {
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+}
 
-    .player {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        background: #000;
-    }
+video {
+    width: 100%;
+    display: block;
+    background: #000;
+}
 
-    video {
-        display: block;
-        width: 100%;
-        height: auto;
-        background: #000;
-    }
+.controls {
+    padding: 12px;
+    background: #111;
+}
 
-    .controls {
-        padding: 10px;
-        background: #111;
-    }
+button {
+    padding: 10px 18px;
+    margin-right: 8px;
+    border: 0;
+    border-radius: 5px;
+    background: #333;
+    color: white;
+}
 
-    .progress {
-        width: 100%;
-        margin-bottom: 10px;
-        cursor: pointer;
-    }
-
-    .buttons {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    button {
-        border: 0;
-        background: #222;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background: #333;
-    }
-
-    input[type="range"] {
-        cursor: pointer;
-    }
-
-    .volume {
-        width: 100px;
-    }
-
-    .time {
-        font-size: 13px;
-        margin-left: auto;
-    }
-
-    .status {
-        padding: 8px 10px;
-        background: #111;
-        color: #aaa;
-        font-size: 12px;
-    }
+#status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #aaa;
+    word-break: break-word;
+}
 </style>
 </head>
 
@@ -88,51 +52,29 @@
 
 <div class="player">
 
-    <video id="video" playsinline preload="auto"></video>
+    <video
+        id="video"
+        controls
+        playsinline
+        preload="auto"
+        crossorigin="anonymous">
+    </video>
 
     <div class="controls">
 
-        <input
-            id="progress"
-            class="progress"
-            type="range"
-            min="0"
-            max="100"
-            value="0"
-        >
+        <button id="play">▶ PLAY</button>
 
-        <div class="buttons">
+        <button id="stop">■ STOP</button>
 
-            <button id="playBtn">▶ Play</button>
+        <button id="mute">🔊 MUTE</button>
 
-            <button id="muteBtn">🔊</button>
-
-            <input
-                id="volume"
-                class="volume"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value="1"
-            >
-
-            <button id="fullscreenBtn">⛶</button>
-
-            <span id="time" class="time">
-                00:00 / 00:00
-            </span>
-
+        <div id="status">
+            Memuat video...
         </div>
 
     </div>
 
-    <div id="status" class="status">
-        Memuat video...
-    </div>
-
 </div>
-
 
 <script>
 
@@ -144,75 +86,90 @@ const AUDIO_URL =
 
 
 const video = document.getElementById("video");
-const playBtn = document.getElementById("playBtn");
-const muteBtn = document.getElementById("muteBtn");
-const volume = document.getElementById("volume");
-const progress = document.getElementById("progress");
-const fullscreenBtn = document.getElementById("fullscreenBtn");
-const timeDisplay = document.getElementById("time");
+
+const playButton = document.getElementById("play");
+const stopButton = document.getElementById("stop");
+const muteButton = document.getElementById("mute");
+
 const status = document.getElementById("status");
 
 
-/*
-    Audio dibuat terpisah karena sumber
-    video dan audio memang merupakan dua file berbeda.
-*/
-const audio = new Audio(AUDIO_URL);
+/* VIDEO */
 
-audio.preload = "auto";
-audio.crossOrigin = "anonymous";
-
-
-video.crossOrigin = "anonymous";
 video.src = VIDEO_URL;
 
 
-/* =========================
-   FORMAT WAKTU
-========================= */
+/* AUDIO */
 
-function formatTime(seconds) {
+const audio = new Audio();
 
-    if (!isFinite(seconds)) {
-        return "00:00";
-    }
-
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-
-    return (
-        String(minutes).padStart(2, "0") +
-        ":" +
-        String(secs).padStart(2, "0")
-    );
-}
+audio.crossOrigin = "anonymous";
+audio.preload = "auto";
+audio.src = AUDIO_URL;
 
 
 /* =========================
-   UPDATE WAKTU
+   VIDEO SIAP
 ========================= */
 
 video.addEventListener("loadedmetadata", () => {
 
-    progress.max = video.duration;
-
-    timeDisplay.textContent =
-        "00:00 / " +
-        formatTime(video.duration);
-
-    status.textContent = "Video siap diputar";
+    status.textContent =
+        "Video siap. Tekan PLAY.";
 
 });
 
 
-video.addEventListener("timeupdate", () => {
+/* =========================
+   VIDEO ERROR
+========================= */
 
-    progress.value = video.currentTime;
+video.addEventListener("error", () => {
 
-    timeDisplay.textContent =
-        formatTime(video.currentTime) +
-        " / " +
-        formatTime(video.duration);
+    console.error(
+        "VIDEO ERROR:",
+        video.error
+    );
+
+    if (video.error) {
+
+        status.textContent =
+            "VIDEO ERROR code: " +
+            video.error.code;
+
+    } else {
+
+        status.textContent =
+            "Video gagal dimuat.";
+
+    }
+
+});
+
+
+/* =========================
+   AUDIO ERROR
+========================= */
+
+audio.addEventListener("error", () => {
+
+    console.error(
+        "AUDIO ERROR:",
+        audio.error
+    );
+
+    if (audio.error) {
+
+        status.textContent =
+            "AUDIO ERROR code: " +
+            audio.error.code;
+
+    } else {
+
+        status.textContent =
+            "Audio gagal dimuat.";
+
+    }
 
 });
 
@@ -221,40 +178,59 @@ video.addEventListener("timeupdate", () => {
    PLAY
 ========================= */
 
-playBtn.addEventListener("click", async () => {
+playButton.addEventListener("click", async () => {
+
+    status.textContent =
+        "Mencoba memutar video...";
 
     try {
 
-        if (video.paused) {
+        /*
+         * Posisi audio disamakan
+         */
+        audio.currentTime =
+            video.currentTime || 0;
 
-            /*
-                Samakan posisi audio dengan video
-            */
-            audio.currentTime = video.currentTime;
 
-            await video.play();
+        /*
+         * Video dimainkan terlebih dahulu
+         */
+        await video.play();
+
+
+        /*
+         * Kemudian audio
+         */
+        try {
+
             await audio.play();
 
-            playBtn.textContent = "⏸ Pause";
+            status.textContent =
+                "VIDEO + AUDIO sedang diputar.";
 
-            status.textContent = "Sedang diputar";
+        } catch (audioError) {
 
-        } else {
+            console.error(
+                "Audio play error:",
+                audioError
+            );
 
-            video.pause();
-            audio.pause();
+            status.textContent =
+                "VIDEO BERHASIL, tetapi AUDIO GAGAL: " +
+                audioError.name;
 
-            playBtn.textContent = "▶ Play";
-
-            status.textContent = "Dijeda";
         }
 
-    } catch (error) {
+    } catch (videoError) {
 
-        console.error(error);
+        console.error(
+            "Video play error:",
+            videoError
+        );
 
         status.textContent =
-            "Gagal memutar audio/video";
+            "VIDEO GAGAL: " +
+            videoError.name;
 
     }
 
@@ -262,49 +238,19 @@ playBtn.addEventListener("click", async () => {
 
 
 /* =========================
-   SINKRONISASI
+   STOP
 ========================= */
 
-video.addEventListener("timeupdate", () => {
+stopButton.addEventListener("click", () => {
 
-    /*
-        Jika perbedaan posisi audio-video
-        lebih dari 0.25 detik, koreksi audio.
-    */
+    video.pause();
+    audio.pause();
 
-    if (
-        !audio.paused &&
-        Math.abs(audio.currentTime - video.currentTime) > 0.25
-    ) {
+    video.currentTime = 0;
+    audio.currentTime = 0;
 
-        audio.currentTime = video.currentTime;
-
-    }
-
-});
-
-
-/* =========================
-   SEEK / GESER PROGRESS
-========================= */
-
-progress.addEventListener("input", () => {
-
-    const newTime = Number(progress.value);
-
-    video.currentTime = newTime;
-    audio.currentTime = newTime;
-
-});
-
-
-/* =========================
-   VOLUME
-========================= */
-
-volume.addEventListener("input", () => {
-
-    audio.volume = volume.value;
+    status.textContent =
+        "Berhenti.";
 
 });
 
@@ -313,40 +259,76 @@ volume.addEventListener("input", () => {
    MUTE
 ========================= */
 
-muteBtn.addEventListener("click", () => {
+muteButton.addEventListener("click", () => {
 
     audio.muted = !audio.muted;
 
-    muteBtn.textContent =
-        audio.muted ? "🔇" : "🔊";
+    muteButton.textContent =
+        audio.muted ? "🔇 UNMUTE" : "🔊 MUTE";
 
 });
 
 
 /* =========================
-   FULLSCREEN
+   SINKRONISASI
 ========================= */
 
-fullscreenBtn.addEventListener("click", () => {
+video.addEventListener("seeking", () => {
 
-    const player = document.querySelector(".player");
+    audio.currentTime =
+        video.currentTime;
 
-    if (document.fullscreenElement) {
+});
 
-        document.exitFullscreen();
 
-    } else {
+video.addEventListener("pause", () => {
 
-        player.requestFullscreen();
+    audio.pause();
+
+});
+
+
+video.addEventListener("play", () => {
+
+    /*
+     * Pastikan posisi tetap sama
+     */
+    if (
+        Math.abs(
+            audio.currentTime -
+            video.currentTime
+        ) > 0.3
+    ) {
+
+        audio.currentTime =
+            video.currentTime;
 
     }
 
 });
 
 
-/* =========================
-   VIDEO SELESAI
-========================= */
+video.addEventListener("timeupdate", () => {
+
+    if (!audio.paused) {
+
+        const difference =
+            Math.abs(
+                audio.currentTime -
+                video.currentTime
+            );
+
+        if (difference > 0.3) {
+
+            audio.currentTime =
+                video.currentTime;
+
+        }
+
+    }
+
+});
+
 
 video.addEventListener("ended", () => {
 
@@ -354,31 +336,8 @@ video.addEventListener("ended", () => {
 
     audio.currentTime = 0;
 
-    playBtn.textContent = "▶ Play";
-
-    status.textContent = "Video selesai";
-
 });
 
-
-/* =========================
-   ERROR
-========================= */
-
-video.addEventListener("error", () => {
-
-    status.textContent =
-        "Video gagal dimuat";
-
-});
-
-
-audio.addEventListener("error", () => {
-
-    status.textContent =
-        "Audio gagal dimuat";
-
-});
 
 </script>
 
