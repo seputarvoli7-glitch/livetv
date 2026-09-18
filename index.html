@@ -3,48 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Player</title>
+
+<title>DASH Player</title>
+
+<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
 
 <style>
-body {
-    margin: 0;
-    background: #000;
-    color: white;
-    font-family: Arial, sans-serif;
-}
+    * {
+        box-sizing: border-box;
+    }
 
-.player {
-    width: 100%;
-    max-width: 1000px;
-    margin: auto;
-}
+    body {
+        margin: 0;
+        background: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
 
-video {
-    width: 100%;
-    display: block;
-    background: #000;
-}
+    .player {
+        width: 100%;
+        max-width: 1000px;
+        margin: auto;
+        background: #000;
+    }
 
-.controls {
-    padding: 12px;
-    background: #111;
-}
+    video {
+        width: 100%;
+        display: block;
+        background: #000;
+    }
 
-button {
-    padding: 10px 18px;
-    margin-right: 8px;
-    border: 0;
-    border-radius: 5px;
-    background: #333;
-    color: white;
-}
-
-#status {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #aaa;
-    word-break: break-word;
-}
+    .info {
+        padding: 10px;
+        background: #111;
+        font-size: 14px;
+    }
 </style>
 </head>
 
@@ -56,288 +49,84 @@ button {
         id="video"
         controls
         playsinline
-        preload="auto"
         crossorigin="anonymous">
     </video>
 
-    <div class="controls">
-
-        <button id="play">▶ PLAY</button>
-
-        <button id="stop">■ STOP</button>
-
-        <button id="mute">🔊 MUTE</button>
-
-        <div id="status">
-            Memuat video...
-        </div>
-
+    <div id="status" class="info">
+        Memuat stream...
     </div>
 
 </div>
 
 <script>
 
-const VIDEO_URL =
-"https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest_video_6_0_222917.mp4?m=1765124789";
+const MPD_URL =
+"https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest.mpd";
 
-const AUDIO_URL =
-"https://ls-mp04.eo-edgefunctions7.com/out/v1/4604623e7ff4462a962275664ccd8ee5/manifest_audio_1_0_222917.mp4?m=1765124789";
+const video =
+document.getElementById("video");
 
-
-const video = document.getElementById("video");
-
-const playButton = document.getElementById("play");
-const stopButton = document.getElementById("stop");
-const muteButton = document.getElementById("mute");
-
-const status = document.getElementById("status");
+const status =
+document.getElementById("status");
 
 
-/* VIDEO */
-
-video.src = VIDEO_URL;
-
-
-/* AUDIO */
-
-const audio = new Audio();
-
-audio.crossOrigin = "anonymous";
-audio.preload = "auto";
-audio.src = AUDIO_URL;
+const player =
+dashjs.MediaPlayer().create();
 
 
-/* =========================
-   VIDEO SIAP
-========================= */
-
-video.addEventListener("loadedmetadata", () => {
-
-    status.textContent =
-        "Video siap. Tekan PLAY.";
-
-});
+player.initialize(
+    video,
+    MPD_URL,
+    false
+);
 
 
-/* =========================
-   VIDEO ERROR
-========================= */
+/* DASH berhasil dimuat */
 
-video.addEventListener("error", () => {
-
-    console.error(
-        "VIDEO ERROR:",
-        video.error
-    );
-
-    if (video.error) {
+player.on(
+    dashjs.MediaPlayer.events.STREAM_INITIALIZED,
+    function () {
 
         status.textContent =
-            "VIDEO ERROR code: " +
-            video.error.code;
+            "Stream siap. Tekan PLAY.";
 
-    } else {
-
-        status.textContent =
-            "Video gagal dimuat.";
+        console.log(
+            "DASH STREAM INITIALIZED"
+        );
 
     }
-
-});
-
-
-/* =========================
-   AUDIO ERROR
-========================= */
-
-audio.addEventListener("error", () => {
-
-    console.error(
-        "AUDIO ERROR:",
-        audio.error
-    );
-
-    if (audio.error) {
-
-        status.textContent =
-            "AUDIO ERROR code: " +
-            audio.error.code;
-
-    } else {
-
-        status.textContent =
-            "Audio gagal dimuat.";
-
-    }
-
-});
+);
 
 
-/* =========================
-   PLAY
-========================= */
+/* Error */
 
-playButton.addEventListener("click", async () => {
-
-    status.textContent =
-        "Mencoba memutar video...";
-
-    try {
-
-        /*
-         * Posisi audio disamakan
-         */
-        audio.currentTime =
-            video.currentTime || 0;
-
-
-        /*
-         * Video dimainkan terlebih dahulu
-         */
-        await video.play();
-
-
-        /*
-         * Kemudian audio
-         */
-        try {
-
-            await audio.play();
-
-            status.textContent =
-                "VIDEO + AUDIO sedang diputar.";
-
-        } catch (audioError) {
-
-            console.error(
-                "Audio play error:",
-                audioError
-            );
-
-            status.textContent =
-                "VIDEO BERHASIL, tetapi AUDIO GAGAL: " +
-                audioError.name;
-
-        }
-
-    } catch (videoError) {
+player.on(
+    dashjs.MediaPlayer.events.ERROR,
+    function (e) {
 
         console.error(
-            "Video play error:",
-            videoError
+            "DASH ERROR:",
+            e
         );
 
         status.textContent =
-            "VIDEO GAGAL: " +
-            videoError.name;
+            "DASH error. Lihat Console.";
 
     }
-
-});
-
-
-/* =========================
-   STOP
-========================= */
-
-stopButton.addEventListener("click", () => {
-
-    video.pause();
-    audio.pause();
-
-    video.currentTime = 0;
-    audio.currentTime = 0;
-
-    status.textContent =
-        "Berhenti.";
-
-});
+);
 
 
-/* =========================
-   MUTE
-========================= */
+/* Buffering */
 
-muteButton.addEventListener("click", () => {
+player.on(
+    dashjs.MediaPlayer.events.BUFFER_LOADED,
+    function () {
 
-    audio.muted = !audio.muted;
-
-    muteButton.textContent =
-        audio.muted ? "🔇 UNMUTE" : "🔊 MUTE";
-
-});
-
-
-/* =========================
-   SINKRONISASI
-========================= */
-
-video.addEventListener("seeking", () => {
-
-    audio.currentTime =
-        video.currentTime;
-
-});
-
-
-video.addEventListener("pause", () => {
-
-    audio.pause();
-
-});
-
-
-video.addEventListener("play", () => {
-
-    /*
-     * Pastikan posisi tetap sama
-     */
-    if (
-        Math.abs(
-            audio.currentTime -
-            video.currentTime
-        ) > 0.3
-    ) {
-
-        audio.currentTime =
-            video.currentTime;
+        status.textContent =
+            "Stream siap.";
 
     }
-
-});
-
-
-video.addEventListener("timeupdate", () => {
-
-    if (!audio.paused) {
-
-        const difference =
-            Math.abs(
-                audio.currentTime -
-                video.currentTime
-            );
-
-        if (difference > 0.3) {
-
-            audio.currentTime =
-                video.currentTime;
-
-        }
-
-    }
-
-});
-
-
-video.addEventListener("ended", () => {
-
-    audio.pause();
-
-    audio.currentTime = 0;
-
-});
-
+);
 
 </script>
 
