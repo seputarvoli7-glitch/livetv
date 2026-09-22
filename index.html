@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIVE STREAMING </title>
+  <title>LIVE STREAMING</title>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 
@@ -34,13 +34,14 @@
 const video = document.getElementById("video");
 
 const streamURL =
-"https://live2.zundrixmediapipeline.com/live/channel33.m3u8";
+"https://live.vivo155.com/live/sd-10-5362017.m3u8?txSecret=61cee17bdcecd9c40fc6093587177fd1&txTime=6AB2694E";
 
 if (Hls.isSupported()) {
 
   const hls = new Hls({
     enableWorker: true,
-    liveSyncDurationCount: 3
+    liveSyncDurationCount: 3,
+    maxLiveSyncPlaybackRate: 1.5
   });
 
   hls.loadSource(streamURL);
@@ -60,7 +61,9 @@ if (Hls.isSupported()) {
 
         case Hls.ErrorTypes.NETWORK_ERROR:
           console.log("Network error, mencoba kembali...");
-          hls.startLoad();
+          setTimeout(() => {
+            hls.startLoad();
+          }, 2000);
           break;
 
         case Hls.ErrorTypes.MEDIA_ERROR:
