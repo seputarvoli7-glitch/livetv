@@ -1,96 +1,47 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIVE STREAMING</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YANSTREAM IPTV</title>
+  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
+      padding: 15px;
+      background: #101010;
+      color: white;
+      font-family: Arial, sans-serif;
     }
-
+    h2 { color: #00d084; }
     video {
       width: 100%;
-      height: 100%;
-      background: #000;
-      object-fit: contain;
+      background: black;
     }
   </style>
 </head>
-
 <body>
+  <h2>YANSTREAM IPTV</h2>
+  <video id="video" controls autoplay playsinline></video>
+  <p id="status">Menghubungkan ke stream...</p>
 
-<video id="video" controls autoplay playsinline></video>
+  <script>
+    const url = "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd";
+    const video = document.getElementById("video");
+    const status = document.getElementById("status");
+    const player = dashjs.MediaPlayer().create();
 
-<script>
-const video = document.getElementById("video");
+    player.on("error", function () {
+      status.textContent =
+        "Gagal memutar. Periksa akses, CORS, atau DRM.";
+    });
 
-const streamURL =
-"https://live2.zundrixmediapipeline.com/live/channel33.flv";
+    player.on("streamInitialized", function () {
+      status.textContent = "Stream berhasil dimuat.";
+    });
 
-if (Hls.isSupported()) {
-
-  const hls = new Hls({
-    enableWorker: true,
-    liveSyncDurationCount: 3,
-    maxLiveSyncPlaybackRate: 1.5
-  });
-
-  hls.loadSource(streamURL);
-  hls.attachMedia(video);
-
-  hls.on(Hls.Events.MANIFEST_PARSED, function () {
-    video.muted = true;
-    video.play().catch(() => {});
-  });
-
-  hls.on(Hls.Events.ERROR, function (event, data) {
-    console.log("HLS Error:", data);
-
-    if (data.fatal) {
-
-      switch (data.type) {
-
-        case Hls.ErrorTypes.NETWORK_ERROR:
-          console.log("Network error, mencoba kembali...");
-          setTimeout(() => {
-            hls.startLoad();
-          }, 2000);
-          break;
-
-        case Hls.ErrorTypes.MEDIA_ERROR:
-          console.log("Media error, recovery...");
-          hls.recoverMediaError();
-          break;
-
-        default:
-          console.log("Fatal error:", data);
-          hls.destroy();
-          break;
-      }
-    }
-  });
-
-} else if (
-  video.canPlayType("application/vnd.apple.mpegurl")
-) {
-
-  video.src = streamURL;
-
-  video.addEventListener("loadedmetadata", function () {
-    video.play().catch(() => {});
-  });
-
-}
-</script>
-
+    player.initialize(video, url, false);
+  </script>
 </body>
 </html>
