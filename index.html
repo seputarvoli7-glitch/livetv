@@ -1,97 +1,166 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Naver CHZZK Live Player</title>
+  <title>YANSTREAM - Live Player</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 16px;
-      background: #111;
+      background: #101114;
       color: #fff;
       font-family: Arial, sans-serif;
     }
 
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
     h2 {
-      font-size: 20px;
+      margin: 8px 0;
+      font-size: 22px;
+    }
+
+    .player {
+      width: 100%;
+      margin-top: 16px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     video {
       display: block;
       width: 100%;
+      height: auto;
       aspect-ratio: 16 / 9;
       background: #000;
-      border-radius: 8px;
+      object-fit: contain;
     }
 
-    #status {
-      color: #ffd166;
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      background: #202126;
+      border-radius: 8px;
+      color: #ddd;
       font-size: 14px;
       overflow-wrap: anywhere;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 7px;
+      background: #e21b35;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .note {
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.6;
     }
   </style>
 </head>
 
 <body>
-  <h2>Naver CHZZK Live</h2>
+  <main class="container">
+    <h2>YANSTREAM LIVE</h2>
+    <p class="note">CHZZK Live Player · Target kualitas 1080p</p>
 
-  <video id="video" controls playsinline
-         autoplay muted></video>
+    <div class="player">
+      <video id="video"
+             controls
+             playsinline
+             autoplay
+             muted
+             preload="auto">
+      </video>
+    </div>
 
-  <p id="status">Memuat pemutar...</p>
+    <div id="status" class="status">
+      Menghubungkan ke server...
+    </div>
+
+    <button id="playButton">▶ Putar Video</button>
+
+    <p class="note">
+      Jika video gagal diputar, token sumber mungkin kedaluwarsa
+      atau server membatasi akses dari browser.
+    </p>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 
   <script>
-    const video = document.getElementById('video');
-    const status = document.getElementById('status');
+    const video = document.getElementById("video");
+    const status = document.getElementById("status");
+    const playButton = document.getElementById("playButton");
 
-    const streamUrl = 'https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/144p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw';
+    const streamUrl = "https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/1080p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw";
 
-    function showError(message) {
+    let hls;
+
+    function setStatus(message) {
       status.textContent = message;
     }
 
-    if (typeof Hls === 'undefined') {
-      showError('HLS.js gagal dimuat. Periksa koneksi internet.');
-    } else if (Hls.isSupported()) {
-      const hls = new Hls({
+    async function playVideo() {
+      try {
+        await video.play();
+        setStatus("Video sedang diputar.");
+      } catch (error) {
+        setStatus("Tekan tombol Putar Video untuk memulai.");
+      }
+    }
+
+    playButton.addEventListener("click", playVideo);
+
+    if (window.Hls && Hls.isSupported()) {
+      hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: false
-      });
-
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        showError('Video terhubung. Memuat playlist...');
-      });
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        showError('Playlist terbaca. Tekan Play jika video belum berjalan.');
-        video.play().catch(() => {
-          showError('Playlist terbaca. Tekan tombol Play.');
-        });
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          showError(
-            'Gagal: ' + data.type + ' / ' + data.details +
-            (data.response && data.response.code
-              ? ' / HTTP ' + data.response.code : '')
-          );
-        }
+        liveSyncDurationCount: 3,
+        maxBufferLength: 20
       });
 
       hls.loadSource(streamUrl);
       hls.attachMedia(video);
 
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        setStatus("Playlist berhasil dimuat. Memulai video...");
+        playVideo();
+      });
+
+      hls.on(Hls.Events.ERROR, function (event, data) {
+        if (!data.fatal) return;
+
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          setStatus("Gagal mengakses stream. Periksa token URL atau akses server.");
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          setStatus("Terjadi masalah media. Mencoba memperbaiki pemutaran...");
+          hls.recoverMediaError();
+        } else {
+          setStatus("Stream gagal diputar. Periksa URL, token, atau CORS.");
+          hls.destroy();
+        }
+      });
+
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = streamUrl;
-      showError('Browser memakai pemutar HLS bawaan. Tekan Play.');
+      setStatus("Browser mendukung HLS bawaan. Tekan Putar Video.");
     } else {
-      showError('Browser tidak mendukung pemutaran HLS.');
+      setStatus("Browser tidak mendukung pemutaran HLS.");
     }
   </script>
 </body>
