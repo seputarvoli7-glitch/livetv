@@ -8,9 +8,7 @@
   <title>YANSTREAM - Live Player</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -25,10 +23,7 @@
       margin: auto;
     }
 
-    h2 {
-      margin: 8px 0;
-      font-size: 22px;
-    }
+    h2 { margin: 8px 0; font-size: 22px; }
 
     .player {
       width: 100%;
@@ -41,7 +36,6 @@
     video {
       display: block;
       width: 100%;
-      height: auto;
       aspect-ratio: 16 / 9;
       background: #000;
       object-fit: contain;
@@ -58,7 +52,7 @@
     }
 
     button {
-      margin-top: 12px;
+      margin: 12px 8px 0 0;
       padding: 12px 18px;
       border: 0;
       border-radius: 7px;
@@ -66,12 +60,6 @@
       color: white;
       font-size: 15px;
       cursor: pointer;
-    }
-
-    .note {
-      color: #aaa;
-      font-size: 13px;
-      line-height: 1.6;
     }
 
     .qris-box {
@@ -112,127 +100,170 @@
       font-size: 13px;
       margin-top: 12px;
     }
+
+    .note {
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.6;
+    }
   </style>
 </head>
 
 <body>
-  <main class="container">
+<main class="container">
+  <h2>YANSTREAM LIVE</h2>
+  <p class="note">Live Player · Kualitas otomatis jika tersedia</p>
 
-    <h2>YANSTREAM LIVE</h2>
-    <p class="note">CHZZK Live Player · Target kualitas 1080p</p>
+  <div class="player">
+    <video id="video" controls playsinline autoplay muted
+           preload="auto"></video>
+  </div>
 
-    <!-- PEMUTAR VIDEO LIVE -->
-    <div class="player">
-      <video
-        id="video"
-        controls
-        playsinline
-        autoplay
-        muted
-        preload="auto">
-      </video>
-    </div>
+  <div id="status" class="status">
+    Menyiapkan pemutar...
+  </div>
 
-    <div id="status" class="status">
-      Menghubungkan ke server...
-    </div>
+  <button id="playButton">▶ Putar Video</button>
+  <button id="qualityButton">Kualitas: Otomatis</button>
 
-    <button id="playButton">▶ Putar Video</button>
-
-    <!-- QR CODE DUKUNGAN -->
-    <section class="qris-box">
-      <h3>❤️ Dukung MegawatiRedspark</h3>
-
-      <p>
-        Scan QR Code di bawah ini untuk memberikan dukungan.
-        Terima kasih sudah mendukung konten voli kami! 🏐
-      </p>
-
-      <img
-        id="qrisImage"
-        class="qris-image"
-        src="./qris-saweria.png"
-        alt="QR Code dukungan MegawatiRedspark"
-      >
-
-      <p id="qrisError" class="qris-error">
-        Gambar QR tidak ditemukan. Periksa nama file di GitHub.
-      </p>
-    </section>
-
-    <p class="note">
-      Jika video gagal diputar, token sumber mungkin kedaluwarsa
-      atau server membatasi akses dari browser.
+  <section class="qris-box">
+    <h3>❤️ Dukung MegawatiRedspark</h3>
+    <p>
+      Scan QR Code di bawah ini untuk memberikan dukungan.
+      Terima kasih sudah mendukung konten voli kami! 🏐
     </p>
 
-  </main>
+    <img
+      id="qrisImage"
+      class="qris-image"
+      src="./qris-saweria.png"
+      alt="QR Code dukungan MegawatiRedspark">
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+    <p id="qrisError" class="qris-error">
+      Gambar QR tidak ditemukan. Periksa nama file di GitHub.
+    </p>
+  </section>
 
-  <script>
-    const video = document.getElementById("video");
-    const status = document.getElementById("status");
-    const playButton = document.getElementById("playButton");
+  <p class="note">
+    Pemutaran tergantung dukungan HTTPS, akses server, CORS,
+    dan format playlist sumber.
+  </p>
+</main>
 
-    const qrisImage = document.getElementById("qrisImage");
-    const qrisError = document.getElementById("qrisError");
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+  const video = document.getElementById("video");
+  const status = document.getElementById("status");
+  const playButton = document.getElementById("playButton");
+  const qualityButton = document.getElementById("qualityButton");
+  const qrisImage = document.getElementById("qrisImage");
+  const qrisError = document.getElementById("qrisError");
 
-    qrisImage.addEventListener("error", function () {
-      qrisImage.style.display = "none";
-      qrisError.style.display = "block";
+  // URL stream terbaru
+  const streamUrl =
+    "http://mnet.x10.mx/koreaiptv/gorealra.php/.m3u8";
+
+  let hls = null;
+  let autoQuality = true;
+
+  function setStatus(message) {
+    status.textContent = message;
+  }
+
+  qrisImage.addEventListener("error", () => {
+    qrisImage.style.display = "none";
+    qrisError.style.display = "block";
+  });
+
+  playButton.addEventListener("click", async () => {
+    try {
+      await video.play();
+    } catch (error) {
+      setStatus("Belum bisa memutar. Periksa akses stream atau tekan Putar.");
+    }
+  });
+
+  qualityButton.addEventListener("click", () => {
+    if (!hls || hls.levels.length === 0) {
+      setStatus("Sumber belum menyediakan daftar kualitas untuk dipilih.");
+      return;
+    }
+
+    if (autoQuality) {
+      autoQuality = false;
+      const highest = hls.levels.reduce(
+        (best, level, index, levels) =>
+          level.height > levels[best].height ? index : best,
+        0
+      );
+      hls.currentLevel = highest;
+      qualityButton.textContent =
+        "Kualitas: " + (hls.levels[highest].height || "?") + "p";
+    } else {
+      autoQuality = true;
+      hls.currentLevel = -1;
+      qualityButton.textContent = "Kualitas: Otomatis";
+    }
+  });
+
+  if (window.Hls && Hls.isSupported()) {
+    hls = new Hls({
+      enableWorker: true,
+      liveSyncDurationCount: 3,
+      maxBufferLength: 20
     });
 
-    const streamUrl = "http://mnet.x10.mx/koreaiptv/gorealra.php/.m3u8";
-    function setStatus(message) {
-      status.textContent = message;
-    }
+    hls.loadSource(streamUrl);
+    hls.attachMedia(video);
 
-    async function playVideo() {
-      try {
-        await video.play();
-        setStatus("Video sedang diputar.");
-      } catch (error) {
-        setStatus("Tekan tombol Putar Video untuk memulai.");
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      const resolutions = hls.levels
+        .map(level => level.height ? level.height + "p" : null)
+        .filter(Boolean);
+
+      setStatus(
+        resolutions.length
+          ? "Playlist dimuat. Resolusi tersedia: " +
+            [...new Set(resolutions)].join(", ") +
+            ". Kualitas otomatis aktif."
+          : "Playlist dimuat. Kualitas otomatis aktif."
+      );
+
+      video.play().catch(() => {
+        setStatus("Playlist dimuat. Tekan tombol Putar Video.");
+      });
+    });
+
+    hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+      const level = hls.levels[data.level];
+      if (level && autoQuality && level.height) {
+        setStatus("Memutar · Otomatis · " + level.height + "p");
       }
-    }
+    });
 
-    playButton.addEventListener("click", playVideo);
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (!data.fatal) return;
 
-    if (window.Hls && Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        liveSyncDurationCount: 3,
-        maxBufferLength: 20
-      });
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+        setStatus(
+          "Akses stream gagal. Kemungkinan HTTP diblokir dari HTTPS, " +
+          "CORS, pengalihan server, atau URL tidak dapat diakses."
+        );
+      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+        setStatus("Memperbaiki masalah media...");
+        hls.recoverMediaError();
+      } else {
+        setStatus("Stream tidak bisa diputar oleh browser.");
+        hls.destroy();
+      }
+    });
 
-      hls.loadSource(streamUrl);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, function () {
-        setStatus("Playlist berhasil dimuat. Memulai video...");
-        playVideo();
-      });
-
-      hls.on(Hls.Events.ERROR, function (event, data) {
-        if (!data.fatal) return;
-
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-          setStatus("Gagal mengakses stream. Periksa token URL atau akses server.");
-        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-          setStatus("Terjadi masalah media. Mencoba memperbaiki pemutaran...");
-          hls.recoverMediaError();
-        } else {
-          setStatus("Stream gagal diputar. Periksa URL, token, atau CORS.");
-          hls.destroy();
-        }
-      });
-
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = streamUrl;
-      setStatus("Browser mendukung HLS bawaan. Tekan Putar Video.");
-    } else {
-      setStatus("Browser tidak mendukung pemutaran HLS.");
-    }
-  </script>
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = streamUrl;
+    setStatus("Mencoba pemutar HLS bawaan browser.");
+  } else {
+    setStatus("Browser ini tidak mendukung pemutaran HLS.");
+  }
+</script>
 </body>
 </html>
