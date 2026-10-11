@@ -1,33 +1,98 @@
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
-<script>
-const video = document.getElementById('video');
-const status = document.getElementById('status');
 
-const streamUrl = 'https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/144p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw';
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naver CHZZK Live Player</title>
 
-if (Hls.isSupported()) {
-  const hls = new Hls({
-    enableWorker: true,
-    lowLatencyMode: false,
-    debug: false
-  });
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
 
-  hls.on(Hls.Events.ERROR, (event, data) => {
-    console.error('HLS error:', data);
-    status.textContent =
-      'Error: ' + data.details +
-      (data.response?.code ? ' | HTTP ' + data.response.code : '');
-  });
+    h2 {
+      font-size: 20px;
+    }
 
-  hls.on(Hls.Events.MANIFEST_PARSED, () => {
-    status.textContent = 'Playlist terbaca. Tekan Play.';
-  });
+    video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 8px;
+    }
 
-  hls.loadSource(streamUrl);
-  hls.attachMedia(video);
+    #status {
+      color: #ffd166;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
 
-} else {
-  status.textContent =
-    'Browser tidak mendukung Media Source Extensions untuk HLS.';
-}
-</script>
+<body>
+  <h2>Naver CHZZK Live</h2>
+
+  <video id="video" controls playsinline
+         autoplay muted></video>
+
+  <p id="status">Memuat pemutar...</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+
+  <script>
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+
+    const streamUrl = 'https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/144p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw';
+
+    function showError(message) {
+      status.textContent = message;
+    }
+
+    if (typeof Hls === 'undefined') {
+      showError('HLS.js gagal dimuat. Periksa koneksi internet.');
+    } else if (Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false
+      });
+
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+        showError('Video terhubung. Memuat playlist...');
+      });
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        showError('Playlist terbaca. Tekan Play jika video belum berjalan.');
+        video.play().catch(() => {
+          showError('Playlist terbaca. Tekan tombol Play.');
+        });
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          showError(
+            'Gagal: ' + data.type + ' / ' + data.details +
+            (data.response && data.response.code
+              ? ' / HTTP ' + data.response.code : '')
+          );
+        }
+      });
+
+      hls.loadSource(streamUrl);
+      hls.attachMedia(video);
+
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = streamUrl;
+      showError('Browser memakai pemutar HLS bawaan. Tekan Play.');
+    } else {
+      showError('Browser tidak mendukung pemutaran HLS.');
+    }
+  </script>
+</body>
+</html>
