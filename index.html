@@ -5,7 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>YANSTREAM IPTV</title>
+
   <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -14,34 +16,132 @@
       color: white;
       font-family: Arial, sans-serif;
     }
+
     h2 { color: #00d084; }
-    video {
+
+    button, input {
+      box-sizing: border-box;
       width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #444;
+    }
+
+    button {
+      background: #00d084;
+      color: #101010;
+      font-weight: bold;
+    }
+
+    input {
+      background: #202020;
+      color: white;
+    }
+
+    video, iframe {
+      width: 100%;
+      aspect-ratio: 16 / 9;
       background: black;
+      border: 0;
+    }
+
+    #status {
+      overflow-wrap: anywhere;
+      color: #ddd;
     }
   </style>
 </head>
+
 <body>
   <h2>YANSTREAM IPTV</h2>
-  <video id="video" controls autoplay playsinline></video>
-  <p id="status">Menghubungkan ke stream...</p>
+
+  <button onclick="showDash()">Pemutar DASH</button>
+  <button onclick="showNaver()">Naver Shorts</button>
+
+  <div id="dashBox">
+    <video id="video" controls playsinline></video>
+  </div>
+
+  <div id="naverBox" hidden>
+    <iframe
+      id="naverFrame"
+      title="Naver Shorts"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+
+    <p>
+      Jika video tidak tampil, buka sumber asli Naver.
+    </p>
+
+    <a id="sourceLink"
+       href="https://m.naver.com/shorts/?mediaId=F7F24CC2CE02DAFC4FA9909DE1F3D56A1DE7&serviceType=CHZZK&recType=AIRS&airsArea=sports&mediaType=VOD&adAllowed=Y"
+       target="_blank"
+       rel="noopener"
+       style="color:#00d084">
+      Buka video di Naver
+    </a>
+  </div>
+
+  <p id="status">Pilih mode pemutar.</p>
 
   <script>
-    const url = "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd";
+    const dashUrl =
+      "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd";
+
+    const naverUrl =
+      "https://m.naver.com/shorts/?mediaId=F7F24CC2CE02DAFC4FA9909DE1F3D56A1DE7&serviceType=CHZZK&recType=AIRS&airsArea=sports&mediaType=VOD&adAllowed=Y";
+
     const video = document.getElementById("video");
     const status = document.getElementById("status");
-    const player = dashjs.MediaPlayer().create();
+    const dashBox = document.getElementById("dashBox");
+    const naverBox = document.getElementById("naverBox");
+    const naverFrame = document.getElementById("naverFrame");
 
-    player.on("error", function () {
+    let player = null;
+
+    function showDash() {
+      naverBox.hidden = true;
+      dashBox.hidden = false;
+      naverFrame.src = "about:blank";
+
+      if (player) {
+        player.reset();
+      }
+
+      player = dashjs.MediaPlayer().create();
+
+      player.on("error", function () {
+        status.textContent =
+          "DASH gagal: periksa akses, CORS, atau DRM.";
+      });
+
+      player.on("streamInitialized", function () {
+        status.textContent = "Manifest DASH berhasil dimuat.";
+      });
+
+      player.initialize(video, dashUrl, false);
+      status.textContent = "Mencoba memuat stream DASH...";
+    }
+
+    function showNaver() {
+      if (player) {
+        player.reset();
+        player = null;
+      }
+
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+
+      dashBox.hidden = true;
+      naverBox.hidden = false;
+      naverFrame.src = naverUrl;
+
       status.textContent =
-        "Gagal memutar. Periksa akses, CORS, atau DRM.";
-    });
-
-    player.on("streamInitialized", function () {
-      status.textContent = "Stream berhasil dimuat.";
-    });
-
-    player.initialize(video, url, false);
+        "Mencoba membuka Naver Shorts. Penyematan dapat ditolak oleh Naver.";
+    }
   </script>
 </body>
 </html>
