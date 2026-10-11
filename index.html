@@ -4,33 +4,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101114">
-  <title>YANSTREAM - Live Player</title>
+  <title>YANSTREAM Live</title>
+  <meta name="theme-color" content="#101010">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       padding: 16px;
-      background: #101114;
+      background: #101010;
       color: #fff;
       font-family: Arial, sans-serif;
     }
 
     .container {
+      width: 100%;
       max-width: 900px;
       margin: auto;
     }
 
-    h2 { margin: 8px 0; font-size: 22px; }
+    h1 {
+      font-size: 25px;
+      text-align: center;
+      margin: 8px 0;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
 
     .player {
-      width: 100%;
-      margin-top: 16px;
       background: #000;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
+      border: 1px solid #333;
     }
 
     video {
@@ -38,232 +50,269 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       background: #000;
-      object-fit: contain;
     }
 
     .status {
-      margin-top: 12px;
       padding: 12px;
-      background: #202126;
-      border-radius: 8px;
+      background: #1c1c1c;
       color: #ddd;
       font-size: 14px;
       overflow-wrap: anywhere;
     }
 
-    button {
-      margin: 12px 8px 0 0;
-      padding: 12px 18px;
-      border: 0;
-      border-radius: 7px;
-      background: #e21b35;
-      color: white;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    .qris-box {
-      margin-top: 22px;
-      padding: 22px 16px;
-      background: #202126;
-      border: 1px solid #383941;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .qris-box h3 {
-      margin: 0 0 10px;
-      font-size: 20px;
-    }
-
-    .qris-box p {
-      margin: 0 0 16px;
-      color: #ccc;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .qris-image {
-      display: block;
-      width: 100%;
-      max-width: 280px;
-      height: auto;
-      margin: 0 auto;
-      padding: 10px;
-      background: #fff;
-      border-radius: 12px;
-    }
-
-    .qris-error {
-      display: none;
-      color: #ffb4b4;
-      font-size: 13px;
+    .controls {
+      display: flex;
+      gap: 10px;
       margin-top: 12px;
     }
 
-    .note {
-      color: #aaa;
-      font-size: 13px;
+    button {
+      flex: 1;
+      padding: 13px 10px;
+      border: 0;
+      border-radius: 8px;
+      background: #e21b35;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #333;
+    }
+
+    .support {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #1c1c1c;
+      text-align: center;
+    }
+
+    .support h2 {
+      font-size: 20px;
+      margin-top: 0;
+    }
+
+    .support p {
+      color: #ccc;
       line-height: 1.6;
+    }
+
+    .qris {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      margin: 15px auto;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .error {
+      color: #ff7777;
+    }
+
+    footer {
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      margin: 20px 0 8px;
     }
   </style>
 </head>
 
 <body>
-<main class="container">
-  <h2>YANSTREAM LIVE</h2>
-  <p class="note">Live Player · Kualitas otomatis jika tersedia</p>
+  <main class="container">
+    <h1>YANSTREAM LIVE</h1>
+    <p class="subtitle">Pemutar live streaming</p>
 
-  <div class="player">
-    <video id="video" controls playsinline autoplay muted
-           preload="auto"></video>
-  </div>
+    <section class="player">
+      <video
+        id="video"
+        controls
+        playsinline
+        autoplay
+        muted
+        preload="auto">
+      </video>
+      <div class="status" id="status">
+        Menghubungkan ke stream...
+      </div>
+    </section>
 
-  <div id="status" class="status">
-    Menyiapkan pemutar...
-  </div>
+    <div class="controls">
+      <button id="playBtn">Putar Ulang</button>
+      <button id="qualityBtn" class="secondary">
+        Kualitas: Otomatis
+      </button>
+    </div>
 
-  <button id="playButton">▶ Putar Video</button>
-  <button id="qualityButton">Kualitas: Otomatis</button>
+    <section class="support">
+      <h2>❤️ Dukung MegawatiRedspark</h2>
+      <p>
+        Scan QR Code di bawah ini untuk memberikan dukungan.
+        Terima kasih sudah mendukung konten voli kami! 🏐
+      </p>
 
-  <section class="qris-box">
-    <h3>❤️ Dukung MegawatiRedspark</h3>
-    <p>
-      Scan QR Code di bawah ini untuk memberikan dukungan.
-      Terima kasih sudah mendukung konten voli kami! 🏐
-    </p>
+      <img
+        class="qris"
+        src="./qris-saweria.png"
+        alt="QRIS dukungan MegawatiRedspark"
+        onerror="this.style.display='none'; document.getElementById('qrisError').style.display='block';">
 
-    <img
-      id="qrisImage"
-      class="qris-image"
-      src="./qris-saweria.png"
-      alt="QR Code dukungan MegawatiRedspark">
+      <p id="qrisError" class="error" style="display:none">
+        QR Code tidak dapat dimuat. Pastikan file
+        qris-saweria.png sudah diunggah ke GitHub.
+      </p>
+    </section>
 
-    <p id="qrisError" class="qris-error">
-      Gambar QR tidak ditemukan. Periksa nama file di GitHub.
-    </p>
-  </section>
+    <footer>
+      YANSTREAM · Pemutar streaming
+    </footer>
+  </main>
 
-  <p class="note">
-    Pemutaran tergantung dukungan HTTPS, akses server, CORS,
-    dan format playlist sumber.
-  </p>
-</main>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
-<script>
-  const video = document.getElementById("video");
-  const status = document.getElementById("status");
-  const playButton = document.getElementById("playButton");
-  const qualityButton = document.getElementById("qualityButton");
-  const qrisImage = document.getElementById("qrisImage");
-  const qrisError = document.getElementById("qrisError");
+  <script>
+    const streamUrl = "https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0005/brczzgzqcq6haez2oqk2xciqjdazpwkk6zxs/1080p/hdntl=st%3d1791704909~exp%3d1791766119~acl%3d*%2fbrczzgzqcq6haez2oqk2xciqjdazpwkk6zxs%2f*~data%3dhdntl~hmac%3d6f089d7e9c55dcde40f8157388c71173fe19d0d2a2ec6e5b1f12a5fdf290e011/5bitmgqp9f6ilxrltngzq2adazpwkk6wja_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIKgc8JzIZ-OGi_6-I5_uDpg";
 
-  // URL stream terbaru
-  const streamUrl =
-    "http://mnet.x10.mx/koreaiptv/gorealra.php/.m3u8";
+    const video = document.getElementById("video");
+    const statusBox = document.getElementById("status");
+    const playBtn = document.getElementById("playBtn");
+    const qualityBtn = document.getElementById("qualityBtn");
 
-  let hls = null;
-  let autoQuality = true;
+    let hls = null;
+    let autoQuality = true;
 
-  function setStatus(message) {
-    status.textContent = message;
-  }
-
-  qrisImage.addEventListener("error", () => {
-    qrisImage.style.display = "none";
-    qrisError.style.display = "block";
-  });
-
-  playButton.addEventListener("click", async () => {
-    try {
-      await video.play();
-    } catch (error) {
-      setStatus("Belum bisa memutar. Periksa akses stream atau tekan Putar.");
-    }
-  });
-
-  qualityButton.addEventListener("click", () => {
-    if (!hls || hls.levels.length === 0) {
-      setStatus("Sumber belum menyediakan daftar kualitas untuk dipilih.");
-      return;
+    function setStatus(message) {
+      statusBox.textContent = message;
     }
 
-    if (autoQuality) {
-      autoQuality = false;
-      const highest = hls.levels.reduce(
-        (best, level, index, levels) =>
-          level.height > levels[best].height ? index : best,
-        0
-      );
-      hls.currentLevel = highest;
-      qualityButton.textContent =
-        "Kualitas: " + (hls.levels[highest].height || "?") + "p";
-    } else {
-      autoQuality = true;
-      hls.currentLevel = -1;
-      qualityButton.textContent = "Kualitas: Otomatis";
-    }
-  });
-
-  if (window.Hls && Hls.isSupported()) {
-    hls = new Hls({
-      enableWorker: true,
-      liveSyncDurationCount: 3,
-      maxBufferLength: 20
-    });
-
-    hls.loadSource(streamUrl);
-    hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      const resolutions = hls.levels
-        .map(level => level.height ? level.height + "p" : null)
-        .filter(Boolean);
-
-      setStatus(
-        resolutions.length
-          ? "Playlist dimuat. Resolusi tersedia: " +
-            [...new Set(resolutions)].join(", ") +
-            ". Kualitas otomatis aktif."
-          : "Playlist dimuat. Kualitas otomatis aktif."
-      );
-
-      video.play().catch(() => {
-        setStatus("Playlist dimuat. Tekan tombol Putar Video.");
-      });
-    });
-
-    hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-      const level = hls.levels[data.level];
-      if (level && autoQuality && level.height) {
-        setStatus("Memutar · Otomatis · " + level.height + "p");
-      }
-    });
-
-    hls.on(Hls.Events.ERROR, (event, data) => {
-      if (!data.fatal) return;
-
-      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-        setStatus(
-          "Akses stream gagal. Kemungkinan HTTP diblokir dari HTTPS, " +
-          "CORS, pengalihan server, atau URL tidak dapat diakses."
-        );
-      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-        setStatus("Memperbaiki masalah media...");
-        hls.recoverMediaError();
-      } else {
-        setStatus("Stream tidak bisa diputar oleh browser.");
+    function startStream() {
+      if (hls) {
         hls.destroy();
+        hls = null;
+      }
+
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+
+      setStatus("Menghubungkan ke CHZZK...");
+
+      if (window.Hls && Hls.isSupported()) {
+        hls = new Hls({
+          enableWorker: true,
+          liveSyncDurationCount: 3,
+          maxBufferLength: 20
+        });
+
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          autoQuality = true;
+          hls.currentLevel = -1;
+          qualityBtn.textContent = "Kualitas: Otomatis";
+          setStatus("Playlist terbaca. Mencoba memutar stream...");
+          video.play().catch(() => {
+            setStatus("Stream tersedia. Tekan tombol Play pada video.");
+          });
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+          const level = hls.levels[data.level];
+          if (level) {
+            const quality = level.height
+              ? level.height + "p"
+              : "Level " + (data.level + 1);
+
+            setStatus(
+              autoQuality
+                ? "Memutar stream · Otomatis (" + quality + ")"
+                : "Memutar stream · " + quality
+            );
+          }
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          if (!data.fatal) return;
+
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            setStatus(
+              "Gagal mengakses stream. URL mungkin kedaluwarsa, " +
+              "akses ditolak, atau server bermasalah."
+            );
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            setStatus("Gangguan media. Mencoba memperbaiki pemutaran...");
+            hls.recoverMediaError();
+          } else {
+            setStatus(
+              "Stream tidak dapat diputar. Periksa URL dan dukungan server."
+            );
+            hls.destroy();
+            hls = null;
+          }
+        });
+
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = streamUrl;
+
+        video.addEventListener("loadedmetadata", function () {
+          video.play().catch(() => {
+            setStatus("Playlist dimuat. Tekan Play untuk memulai.");
+          });
+        }, { once: true });
+
+        video.addEventListener("error", function () {
+          setStatus(
+            "Browser tidak dapat memutar stream. Periksa URL atau akses server."
+          );
+        }, { once: true });
+
+      } else {
+        setStatus("Browser ini tidak mendukung pemutaran HLS.");
+      }
+    }
+
+    playBtn.addEventListener("click", startStream);
+
+    qualityBtn.addEventListener("click", function () {
+      if (!hls || !hls.levels || hls.levels.length === 0) {
+        setStatus(
+          "Pilihan kualitas belum tersedia. Stream harus menyediakan beberapa level kualitas."
+        );
+        return;
+      }
+
+      if (autoQuality) {
+        let highest = 0;
+
+        for (let i = 1; i < hls.levels.length; i++) {
+          if (
+            (hls.levels[i].height || 0) >
+            (hls.levels[highest].height || 0)
+          ) {
+            highest = i;
+          }
+        }
+
+        autoQuality = false;
+        hls.currentLevel = highest;
+
+        const level = hls.levels[highest];
+        qualityBtn.textContent = "Kualitas: " +
+          (level.height ? level.height + "p" : "Tertinggi");
+      } else {
+        autoQuality = true;
+        hls.currentLevel = -1;
+        qualityBtn.textContent = "Kualitas: Otomatis";
       }
     });
 
-  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = streamUrl;
-    setStatus("Mencoba pemutar HLS bawaan browser.");
-  } else {
-    setStatus("Browser ini tidak mendukung pemutaran HLS.");
-  }
-</script>
+    startStream();
+  </script>
 </body>
 </html>
