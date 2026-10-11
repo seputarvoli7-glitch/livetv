@@ -1,67 +1,33 @@
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+const video = document.getElementById('video');
+const status = document.getElementById('status');
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Naver CHZZK Player</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 16px;
-      background: #111;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-    h3 { font-size: 18px; }
-    video {
-      width: 100%;
-      max-height: 75vh;
-      background: black;
-    }
-    #status {
-      color: #ffd166;
-      font-size: 14px;
-      overflow-wrap: anywhere;
-    }
-  </style>
-</head>
-<body>
-  <h3>Naver CHZZK Player</h3>
-  <video id="video" controls playsinline></video>
-  <p id="status">Memeriksa stream...</p>
+const streamUrl = 'https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/144p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw';
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    const video = document.getElementById('video');
-    const status = document.getElementById('status');
+if (Hls.isSupported()) {
+  const hls = new Hls({
+    enableWorker: true,
+    lowLatencyMode: false,
+    debug: false
+  });
 
-    const streamUrl = 'TEMPEL_URL_M3U8_LENGKAP_DI_SINI';
+  hls.on(Hls.Events.ERROR, (event, data) => {
+    console.error('HLS error:', data);
+    status.textContent =
+      'Error: ' + data.details +
+      (data.response?.code ? ' | HTTP ' + data.response.code : '');
+  });
 
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false
-      });
+  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    status.textContent = 'Playlist terbaca. Tekan Play.';
+  });
 
-      hls.loadSource(streamUrl);
-      hls.attachMedia(video);
+  hls.loadSource(streamUrl);
+  hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        status.textContent = 'Stream ditemukan. Tekan Play.';
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        status.textContent =
-          'Error: ' + data.type + ' / ' + data.details +
-          (data.response?.code ? ' / HTTP ' + data.response.code : '');
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = streamUrl;
-      status.textContent = 'Coba tekan Play.';
-    } else {
-      status.textContent = 'Browser tidak mendukung HLS.';
-    }
-  </script>
-</body>
-</html>
+} else {
+  status.textContent =
+    'Browser tidak mendukung Media Source Extensions untuk HLS.';
+}
+</script>
