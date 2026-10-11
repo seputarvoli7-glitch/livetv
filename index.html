@@ -106,10 +106,11 @@
       border-radius: 12px;
     }
 
-    .qris-fallback {
+    .qris-error {
       display: none;
-      margin-top: 12px !important;
-      color: #ffb4b4 !important;
+      color: #ffb4b4;
+      font-size: 13px;
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -120,14 +121,15 @@
     <h2>YANSTREAM LIVE</h2>
     <p class="note">CHZZK Live Player · Target kualitas 1080p</p>
 
-    <!-- PEMUTAR LIVE -->
+    <!-- PEMUTAR VIDEO LIVE -->
     <div class="player">
-      <video id="video"
-             controls
-             playsinline
-             autoplay
-             muted
-             preload="auto">
+      <video
+        id="video"
+        controls
+        playsinline
+        autoplay
+        muted
+        preload="auto">
       </video>
     </div>
 
@@ -137,7 +139,7 @@
 
     <button id="playButton">▶ Putar Video</button>
 
-    <!-- QR CODE SAWERIA: TANPA TAUTAN YANG TERLIHAT -->
+    <!-- QR CODE DUKUNGAN -->
     <section class="qris-box">
       <h3>❤️ Dukung MegawatiRedspark</h3>
 
@@ -149,13 +151,12 @@
       <img
         id="qrisImage"
         class="qris-image"
-        src="https://saweria.co/widgets/qr?streamKey=f4135f329fd6e4a6a4cef7a482ec5494"
+        src="./qris-saweria.png"
         alt="QR Code dukungan MegawatiRedspark"
-        loading="lazy"
       >
 
-      <p id="qrisFallback" class="qris-fallback">
-        QR Code tidak dapat dimuat. Silakan coba lagi nanti.
+      <p id="qrisError" class="qris-error">
+        Gambar QR tidak ditemukan. Periksa nama file di GitHub.
       </p>
     </section>
 
@@ -174,16 +175,14 @@
     const playButton = document.getElementById("playButton");
 
     const qrisImage = document.getElementById("qrisImage");
-    const qrisFallback = document.getElementById("qrisFallback");
+    const qrisError = document.getElementById("qrisError");
 
     qrisImage.addEventListener("error", function () {
       qrisImage.style.display = "none";
-      qrisFallback.style.display = "block";
+      qrisError.style.display = "block";
     });
 
     const streamUrl = "https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/1080p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw";
-
-    let hls;
 
     function setStatus(message) {
       status.textContent = message;
@@ -201,7 +200,7 @@
     playButton.addEventListener("click", playVideo);
 
     if (window.Hls && Hls.isSupported()) {
-      hls = new Hls({
+      const hls = new Hls({
         enableWorker: true,
         liveSyncDurationCount: 3,
         maxBufferLength: 20
