@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
   <title>YANSTREAM - Live Player</title>
 
   <style>
@@ -73,9 +74,8 @@
       line-height: 1.6;
     }
 
-    /* Saweria */
-    .saweria-box {
-      margin-top: 20px;
+    .qris-box {
+      margin-top: 22px;
       padding: 22px 16px;
       background: #202126;
       border: 1px solid #383941;
@@ -83,50 +83,44 @@
       text-align: center;
     }
 
-    .saweria-box h3 {
+    .qris-box h3 {
       margin: 0 0 10px;
       font-size: 20px;
-      color: #fff;
     }
 
-    .saweria-box p {
-      margin: 0 0 18px;
+    .qris-box p {
+      margin: 0 0 16px;
       color: #ccc;
       font-size: 14px;
       line-height: 1.6;
     }
 
-    .saweria-button {
-      display: inline-block;
-      padding: 13px 22px;
-      background: #f5a623;
-      color: #171717;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .saweria-button:hover {
-      background: #ffc04d;
-    }
-
-    .saweria-url {
+    .qris-image {
       display: block;
-      margin-top: 12px;
-      color: #aaa;
-      font-size: 12px;
-      overflow-wrap: anywhere;
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      margin: 0 auto;
+      padding: 10px;
+      background: #fff;
+      border-radius: 12px;
+    }
+
+    .qris-fallback {
+      display: none;
+      margin-top: 12px !important;
+      color: #ffb4b4 !important;
     }
   </style>
 </head>
 
 <body>
   <main class="container">
+
     <h2>YANSTREAM LIVE</h2>
     <p class="note">CHZZK Live Player · Target kualitas 1080p</p>
 
+    <!-- PEMUTAR LIVE -->
     <div class="player">
       <video id="video"
              controls
@@ -143,33 +137,33 @@
 
     <button id="playButton">▶ Putar Video</button>
 
-    <!-- SAWERIA -->
-    <section class="saweria-box">
+    <!-- QR CODE SAWERIA: TANPA TAUTAN YANG TERLIHAT -->
+    <section class="qris-box">
       <h3>❤️ Dukung MegawatiRedspark</h3>
 
       <p>
-        Suka dengan konten voli dan siaran kami?
-        Kamu bisa memberikan dukungan melalui Saweria.
-        Terima kasih sudah mendukung YANSTREAM!
+        Scan QR Code di bawah ini untuk memberikan dukungan.
+        Terima kasih sudah mendukung konten voli kami! 🏐
       </p>
 
-      <a
-        class="saweria-button"
-        href="https://saweria.co/MegawatiRedspark"
-        target="_blank"
-        rel="noopener noreferrer">
-        ☕ Dukung melalui Saweria
-      </a>
+      <img
+        id="qrisImage"
+        class="qris-image"
+        src="https://saweria.co/widgets/qr?streamKey=f4135f329fd6e4a6a4cef7a482ec5494"
+        alt="QR Code dukungan MegawatiRedspark"
+        loading="lazy"
+      >
 
-      <span class="saweria-url">
-        saweria.co/MegawatiRedspark
-      </span>
+      <p id="qrisFallback" class="qris-fallback">
+        QR Code tidak dapat dimuat. Silakan coba lagi nanti.
+      </p>
     </section>
 
     <p class="note">
       Jika video gagal diputar, token sumber mungkin kedaluwarsa
       atau server membatasi akses dari browser.
     </p>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
@@ -178,6 +172,14 @@
     const video = document.getElementById("video");
     const status = document.getElementById("status");
     const playButton = document.getElementById("playButton");
+
+    const qrisImage = document.getElementById("qrisImage");
+    const qrisFallback = document.getElementById("qrisFallback");
+
+    qrisImage.addEventListener("error", function () {
+      qrisImage.style.display = "none";
+      qrisFallback.style.display = "block";
+    });
 
     const streamUrl = "https://ex-nlive-streaming.navercdn.com/chzzk/lip2_kr/cflexnmss2u0006/ei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3/1080p/hdntl=st%3d1791692504~exp%3d1791753714~acl%3d*%2fei0bktmf1tr7ipud6ewyw7g6k9ovp6slacu3%2f*~data%3dhdntl~hmac%3d6b172a83c3a69b8c3f04b312476d2313bd4732f413a3bf8d399ad7a07f2a40ce/gnb4jzbrdg1crcypxlt77r09ovp6sla8n3_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw";
 
