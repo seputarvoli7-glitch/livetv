@@ -4,22 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080b12">
+  <meta name="description" content="YANSTREAM Live Player">
   <title>YANSTREAM - Live Player</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 18px;
+      padding: 16px;
       background: #080b12;
       color: #f5f7fb;
       font-family: Arial, sans-serif;
     }
 
     .container {
+      width: 100%;
       max-width: 900px;
       margin: auto;
     }
@@ -30,18 +30,16 @@
     }
 
     .logo {
-      font-size: 27px;
+      font-size: 28px;
       font-weight: 800;
       letter-spacing: 2px;
     }
 
-    .logo span {
-      color: #35d7ff;
-    }
+    .logo span { color: #35d7ff; }
 
     .subtitle {
       color: #9aa5b5;
-      font-size: 13px;
+      font-size: 12px;
       margin-top: 7px;
     }
 
@@ -79,7 +77,7 @@
     .status {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
       padding: 14px 0;
       color: #aab4c4;
       font-size: 13px;
@@ -93,13 +91,8 @@
       flex-shrink: 0;
     }
 
-    .dot.online {
-      background: #35df91;
-    }
-
-    .dot.error {
-      background: #ff5268;
-    }
+    .dot.online { background: #35df91; }
+    .dot.error { background: #ff5268; }
 
     .controls {
       display: flex;
@@ -117,18 +110,13 @@
       font-size: 14px;
     }
 
-    button {
-      cursor: pointer;
-    }
+    button { cursor: pointer; }
+    button:active { opacity: .75; }
 
     button.primary {
       background: #087fce;
       border-color: #087fce;
       font-weight: bold;
-    }
-
-    button:active {
-      opacity: .75;
     }
 
     .panel {
@@ -150,6 +138,7 @@
       line-height: 1.6;
       margin: 0;
       overflow-wrap: anywhere;
+      white-space: pre-wrap;
     }
 
     .quality-row {
@@ -159,6 +148,10 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+
+    .quality-row h3 { margin: 0; }
+
+    select { max-width: 100%; }
 
     footer {
       text-align: center;
@@ -179,16 +172,16 @@
     <div class="player-box">
       <div class="watermark">YANSTREAM</div>
       <video id="video"
-             controls
-             playsinline
-             autoplay
-             muted
-             preload="auto"></video>
+        controls
+        playsinline
+        autoplay
+        muted
+        preload="auto"></video>
     </div>
 
     <div class="status">
       <span id="dot" class="dot"></span>
-      <span id="statusText">Menghubungkan ke stream...</span>
+      <span id="statusText">Menyiapkan pemutar...</span>
     </div>
 
     <div class="controls">
@@ -204,17 +197,17 @@
           <option value="-1">Otomatis</option>
         </select>
       </div>
-      <p id="qualityInfo">Kualitas akan mengikuti pilihan yang tersedia dari server.</p>
+      <p id="qualityInfo" style="margin-top:10px">
+        Menunggu informasi kualitas dari server.
+      </p>
     </section>
 
     <section class="panel">
       <h3>Status Pemutar</h3>
-      <p id="detail">Menyiapkan koneksi HLS...</p>
+      <p id="detail">Memulai koneksi HLS...</p>
     </section>
 
-    <footer>
-      YANSTREAM · Live Player
-    </footer>
+    <footer>YANSTREAM · Live Player</footer>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
@@ -226,58 +219,102 @@
     const detail = document.getElementById("detail");
     const quality = document.getElementById("quality");
     const qualityInfo = document.getElementById("qualityInfo");
+    const playButton = document.getElementById("playButton");
+    const retryButton = document.getElementById("retryButton");
+    const muteButton = document.getElementById("muteButton");
 
-    // Tempel URL playlist HLS terbaru di antara tanda kutip.
-    const STREAM_URL = "https://livecloud.pstatic.net/chzzk/lip2_kr/cflexnmss2u0010/vwfbw7hehymp50ilubip0hqtr61xfvqrma99/1080p/hdntl=exp=1792283473~acl=*%2Fvwfbw7hehymp50ilubip0hqtr61xfvqrma99%2F*~data=hdntl~hmac=ddaa4dd0b910be65768ae32484ff3d030135ba586c7cde361b01b45e84edb95b/ec1fnu7yqytg6rdmoxprdts61xfvqrm7xi_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIKgc8JzIZ-OGi_6-I5_uDpgfw6kwr27ioeizfv4zg8m8o3ym99o9oi%2f%2a%7edata%3dhdntl%7ehmac%3d4f82425dbeb65b3ead59274f60895f871ebe1a7c5cedffc1a757ea39a2ca1d42/lege7isgcqcewsqtxmy3aac8o3ym99nw1v_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cww6kwr27ioeizfv4zg8m8o3ym99o9oi%2f%2a%7edata%3dhdntl%7ehmac%3d4f82425dbeb65b3ead59274f60895f871ebe1a7c5cedffc1a757ea39a2ca1d42/lege7isgcqcewsqtxmy3aac8o3ym99nw1v_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIHH81HaCbnxOCk3lZ9Bo6Cw7j4_hls_playlist.m3u8?hdnts=st=1792144810~exp=1792206020~acl=*/gjocf9t8qnncyccq60hgkpfyy8mmu81f4brq/*~hmac=bc5bfef9b6f967da9ce3d9bbe960de1f1d73f812e33ed862a057a318da203dae&vp=47DEQpj8HBSa-_TIKgc8JzIZ-OGi_6-I5_uDpg";
+    // Satu URL playlist HLS.
+    // Jika token kedaluwarsa, ganti dengan URL terbaru.
+    const STREAM_URL = "https://livecloud.pstatic.net/chzzk/lip2_kr/cflexnmss2u0010/vwfbw7hehymp50ilubip0hqtr61xfvqrma99/1080p/hdntl=exp=1792283473~acl=*%2Fvwfbw7hehymp50ilubip0hqtr61xfvqrma99%2F*~data=hdntl~hmac=ddaa4dd0b910be65768ae32484ff3d030135ba586c7cde361b01b45e84edb95b/ec1fnu7yqytg6rdmoxprdts61xfvqrm7xi_hls_chunklist.m3u8?vp=47DEQpj8HBSa-_TIKgc8JzIZ-OGi_6-I5_uDpg";
+
     let hls = null;
+    let retryTimer = null;
+    let generation = 0;
 
     function setStatus(message, state = "") {
       statusText.textContent = message;
-      dot.className = "dot " + state;
+      dot.className = "dot" + (state ? " " + state : "");
     }
 
     function setDetail(message) {
       detail.textContent = message;
     }
 
-    function startPlayer() {
+    function stopPlayer() {
+      generation++;
+
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+
       if (hls) {
         hls.destroy();
         hls = null;
       }
 
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    }
+
+    function scheduleRetry() {
+      if (retryTimer) clearTimeout(retryTimer);
+
+      const currentGeneration = generation;
+
+      retryTimer = setTimeout(() => {
+        if (currentGeneration === generation) {
+          startPlayer();
+        }
+      }, 5000);
+    }
+
+    function startPlayer() {
+      stopPlayer();
+      const currentGeneration = generation;
+
       quality.innerHTML = '<option value="-1">Otomatis</option>';
       qualityInfo.textContent =
-        "Kualitas akan mengikuti pilihan yang tersedia dari server.";
+        "Menunggu informasi kualitas dari server.";
 
-      if (!STREAM_URL.startsWith("https://") ||
-          STREAM_URL === "TEMPEL_URL_M3U8_DI_SINI") {
-        setStatus("URL stream belum diisi", "error");
-        setDetail("Edit STREAM_URL dan masukkan URL playlist .m3u8 yang valid.");
+      setStatus("Menghubungkan ke stream...");
+      setDetail("Memuat playlist HLS. Mohon tunggu.");
+
+      if (!STREAM_URL.startsWith("https://")) {
+        setStatus("URL tidak valid", "error");
+        setDetail("STREAM_URL harus berupa URL HTTPS.");
         return;
       }
-
-      setStatus("Menghubungkan ke stream...", "");
-      setDetail("Memuat playlist HLS...");
 
       if (window.Hls && Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
           liveSyncDurationCount: 3,
           maxBufferLength: 20,
-          capLevelToPlayerSize: false
+          capLevelToPlayerSize: false,
+          manifestLoadingTimeOut: 15000,
+          levelLoadingTimeOut: 15000,
+          fragLoadingTimeOut: 20000,
+          manifestLoadingMaxRetry: 2,
+          levelLoadingMaxRetry: 2,
+          fragLoadingMaxRetry: 2
         });
 
         hls.loadSource(STREAM_URL);
         hls.attachMedia(video);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          if (currentGeneration !== generation) return;
+
           setStatus("Playlist berhasil dimuat", "online");
-          setDetail("Playlist terbaca. Tekan Putar Live jika video belum berjalan.");
+          setDetail(
+            "Playlist terbaca. Pemutar mencoba menjalankan video."
+          );
 
           quality.innerHTML = '<option value="-1">Otomatis</option>';
 
-          data.levels.forEach(function(level, index) {
+          data.levels.forEach((level, index) => {
             const option = document.createElement("option");
             option.value = index;
             option.textContent = level.height
@@ -286,92 +323,128 @@
             quality.appendChild(option);
           });
 
-          video.play().catch(function() {
-            setStatus("Menunggu tombol putar", "");
-            setDetail("Autoplay mungkin diblokir browser. Tekan Putar Live.");
+          qualityInfo.textContent = data.levels.length
+            ? "Pilihan kualitas tersedia: " +
+              data.levels.map(level => level.height
+                ? level.height + "p"
+                : "lainnya").join(", ")
+            : "Server belum memberikan daftar kualitas.";
+
+          video.play().catch(() => {
+            if (currentGeneration !== generation) return;
+            setStatus("Tekan Putar Live", "");
+            setDetail(
+              "Autoplay diblokir browser atau video belum siap. " +
+              "Tekan tombol Putar Live."
+            );
           });
         });
 
-        hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
+        hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+          if (currentGeneration !== generation || !hls) return;
+
           const level = hls.levels[data.level];
           if (level) {
             qualityInfo.textContent =
-              "Kualitas aktif: " + (level.height || "tidak diketahui") + "p";
+              "Kualitas aktif: " +
+              (level.height ? level.height + "p" : "tidak diketahui");
           }
         });
 
-        hls.on(Hls.Events.ERROR, function(event, data) {
-          if (!data.fatal) return;
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (currentGeneration !== generation || !data.fatal) return;
+
+          const httpStatus =
+            data.response && data.response.code
+              ? data.response.code
+              : "tidak tersedia";
+
+          setStatus("Gagal memuat stream", "error");
+          setDetail(
+            "Jenis error: " + data.type +
+            "\nDetail: " + data.details +
+            "\nHTTP: " + httpStatus +
+            "\n\nPeriksa token URL, koneksi, dan izin akses server."
+          );
 
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            setStatus("Gagal mengakses stream", "error");
-            setDetail(
-              "Periksa token URL, akses server, dan CORS. " +
-              "Tekan Coba Lagi untuk mencoba koneksi ulang."
-            );
+            // Coba pulihkan jaringan satu kali melalui mekanisme hls.js.
+            hls.startLoad();
           } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            setStatus("Memulihkan pemutar video", "");
-            setDetail("Terjadi masalah media. Pemutar mencoba memulihkan video.");
             hls.recoverMediaError();
           } else {
-            setStatus("Stream tidak dapat diputar", "error");
-            setDetail("Periksa URL .m3u8 dan dukungan server terhadap browser.");
             hls.destroy();
             hls = null;
           }
         });
 
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // Pemutaran HLS native pada browser yang mendukungnya.
         video.src = STREAM_URL;
-        video.play().catch(function() {
+
+        video.play().catch(() => {
           setStatus("Tekan Putar Live", "");
+          setDetail("Tekan tombol Putar Live untuk mencoba memutar video.");
         });
       } else {
         setStatus("HLS tidak didukung", "error");
-        setDetail("Browser ini tidak mendukung pemutaran HLS secara native.");
+        setDetail(
+          "Browser tidak mendukung HLS secara native dan hls.js tidak tersedia."
+        );
       }
     }
 
-    document.getElementById("playButton").addEventListener("click", function() {
-      video.play().then(function() {
-        setStatus("Pemutaran berjalan", "online");
-      }).catch(function() {
+    playButton.addEventListener("click", () => {
+      video.play().then(() => {
+        setStatus("Video sedang diputar", "online");
+      }).catch(() => {
         setStatus("Video belum bisa diputar", "error");
-        setDetail("Periksa URL stream atau akses server.");
+        setDetail(
+          "Periksa error di atas. Jika terkait CORS atau HTTP 403, " +
+          "masalahnya perlu diperiksa pada sumber stream."
+        );
       });
     });
 
-    document.getElementById("retryButton").addEventListener("click", startPlayer);
+    retryButton.addEventListener("click", startPlayer);
 
-    document.getElementById("muteButton").addEventListener("click", function() {
+    muteButton.addEventListener("click", () => {
       video.muted = !video.muted;
-      this.textContent = video.muted
+      muteButton.textContent = video.muted
         ? "🔊 Aktifkan Suara"
         : "🔇 Matikan Suara";
+
       if (!video.muted) {
-        video.play().catch(function() {});
+        video.play().catch(() => {});
       }
     });
 
-    quality.addEventListener("change", function() {
+    quality.addEventListener("change", () => {
       if (hls) {
-        hls.currentLevel = Number(this.value);
+        hls.currentLevel = Number(quality.value);
       }
     });
 
-    video.addEventListener("playing", function() {
+    video.addEventListener("playing", () => {
       setStatus("Video sedang diputar", "online");
     });
 
-    video.addEventListener("waiting", function() {
+    video.addEventListener("waiting", () => {
       setStatus("Buffering...", "");
     });
 
-    video.addEventListener("error", function() {
+    video.addEventListener("error", () => {
       setStatus("Video mengalami error", "error");
-      setDetail("Browser gagal membaca video. Periksa URL dan akses server.");
+
+      if (video.error) {
+        setDetail(
+          "Kode error media browser: " + video.error.code +
+          "\nPeriksa URL playlist dan akses server."
+        );
+      }
     });
 
+    // Mulai otomatis saat halaman dibuka.
     startPlayer();
   </script>
 </body>
